@@ -1,77 +1,3 @@
-// ════════════════════════════════════════════════════════
-// AUTH PERSISTENCE FIX — app.js এর onMounted এ এই অংশ যোগ করুন
-// ════════════════════════════════════════════════════════
-//
-// সমস্যা: পেজ রিলোড বা নেভিগেশনে auth state হারিয়ে যাচ্ছে।
-// সমাধান: setPersistence(browserLocalPersistence) সবার আগে call করতে হবে
-//         এবং onAuthStateChanged দিয়ে redirect handle করতে হবে।
-//
-// আপনার বিদ্যমান app.js এর onMounted() এর শুরুতে নিচের কোড যোগ করুন:
-//
-//   await setPersistence(auth, browserLocalPersistence).catch(() => {});
-//
-// এবং onAuthStateChanged এর ভেতরে নিচের মতো করুন:
-
-/*
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    isLoggedIn.value = true;
-
-    // ── LocalStorage sync ──
-    localStorage.setItem('userId', user.uid);
-
-    // ── Online status update ──
-    const markOnline = () =>
-      updateDoc(doc(db, 'users', user.uid), {
-        isOnline: true,
-        lastSeen: serverTimestamp()
-      }).catch(() => {});
-    markOnline();
-    setInterval(markOnline, 60000);
-
-    const markOffline = () =>
-      updateDoc(doc(db, 'users', user.uid), {
-        isOnline: false,
-        lastSeen: serverTimestamp()
-      }).catch(() => {});
-    window.addEventListener('beforeunload', markOffline);
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) markOffline();
-      else markOnline();
-    });
-
-    // ── Real-time balance ──
-    onSnapshot(doc(db, 'users', user.uid), (d) => {
-      if (d.exists()) {
-        userBalance.value = d.data().balance || 0;
-        userAvatar.value = d.data().photoURL || 'https://i.pravatar.cc/150?img=12';
-        userData.value = d.data();
-        const uid = user.uid.replace(/\D/g, '');
-        supportPin.value = uid.length > 5
-          ? uid.substring(0, 6)
-          : Math.floor(100000 + Math.random() * 900000);
-      }
-    });
-
-    checkTodayCheckin(user.uid);
-    fetchTurnovers();
-
-  } else {
-    // ── শুধুমাত্র login/register পেজে না থাকলে redirect করুন ──
-    isLoggedIn.value = false;
-    userBalance.value = 0;
-    userData.value = {};
-    // NOTE: index.html এ থাকলে login পেজে পাঠান
-    // কিন্তু এই কোড index.html এই চলে, তাই:
-    // page.value = 'login'; // এই লাইনটি রাখলেই হবে
-  }
-});
-*/
-
-// ════════════════════════════════════════════════════════
-// COMPLETE FIXED app.js
-// ════════════════════════════════════════════════════════
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider,
@@ -181,6 +107,9 @@ const db = getFirestore(fireApp);
 // ══════════════════════════════════════════
 createApp({
   setup() {
+    // ── পরিবর্তন ১: Presence interval tracker ──
+    let _presenceInterval = null;
+
     const page = ref('home');
     const isLoggedIn = ref(false);
     const userBalance = ref(0);
@@ -523,10 +452,17 @@ createApp({
       } finally { regLoading.value = false; }
     };
 
-    // ✅ FIX: সঠিক লগআউট
+    // ✅ FIX: সঠিক লগআউট (পরিবর্তন ৩ — interval clear)
     const handleLogout = async () => {
       if (confirm('আপনি কি নিশ্চিত লগআউট করতে চান?')) {
         if (chatUnsubscribe.value) chatUnsubscribe.value();
+
+        // ── Presence interval clear ──
+        if (_presenceInterval) {
+          clearInterval(_presenceInterval);
+          _presenceInterval = null;
+        }
+
         const uid = localStorage.getItem('userId');
         if (uid) {
           await updateDoc(doc(db, 'users', uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {});
@@ -1100,22 +1036,58 @@ createApp({
       watchAdminStatus();
 
       // ── ✅ FIX: Auth State Listener ──
-      // onAuthStateChanged একবারই fire হবে, persist থাকবে
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           isLoggedIn.value = true;
           localStorage.setItem('userId', user.uid);
 
+          // ── পরিবর্তন ২: উন্নত Presence Management ──
           const markOnline = () =>
-            updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(() => {});
-          markOnline();
-          setInterval(markOnline, 60000);
+            updateDoc(doc(db, 'users', user.uid), {
+              isOnline: true,
+              lastSeen: serverTimestamp()
+            }).catch(() => {});
 
-          const markOffline = () =>
-            updateDoc(doc(db, 'users', user.uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {});
-          window.addEventListener('beforeunload', markOffline);
+          const markOffline = () => {
+            if (_presenceInterval) {
+              clearInterval(_presenceInterval);
+              _presenceInterval = null;
+            }
+            updateDoc(doc(db, 'users', user.uid), {
+              isOnline: false,
+              lastSeen: serverTimestamp()
+            }).catch(() => {});
+          };
+
+          const startHeartbeat = () => {
+            if (_presenceInterval) clearInterval(_presenceInterval);
+            _presenceInterval = setInterval(markOnline, 60000);
+          };
+
+          markOnline();
+          startHeartbeat();
+
           document.addEventListener('visibilitychange', () => {
-            if (document.hidden) markOffline(); else markOnline();
+            if (document.visibilityState === 'hidden') {
+              markOffline();
+            } else {
+              markOnline();
+              startHeartbeat();
+            }
+          });
+
+          window.addEventListener('beforeunload', () => { markOffline(); });
+
+          window.addEventListener('offline', () => {
+            if (_presenceInterval) {
+              clearInterval(_presenceInterval);
+              _presenceInterval = null;
+            }
+          });
+
+          window.addEventListener('online', () => {
+            markOnline();
+            startHeartbeat();
           });
 
           // ── Real-time balance (সবসময় fresh) ──
@@ -1133,7 +1105,6 @@ createApp({
           fetchTurnovers();
 
         } else {
-          // ── লগইন নেই: login পেজে পাঠান ──
           isLoggedIn.value = false;
           userBalance.value = 0;
           userData.value = {};
