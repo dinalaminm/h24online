@@ -193,8 +193,6 @@
 .multi-chip.active .multi-chip-check{
   background:var(--primary);border-color:var(--primary);color:#fff;
 }
-
-/* Single-select round chip — radio style */
 .round-chip{
   display:inline-flex;align-items:center;gap:6px;
   padding:8px 14px;
@@ -231,7 +229,6 @@
   border-radius:50%;
   background:#fff;
 }
-
 .selected-tags{
   display:flex;flex-wrap:wrap;gap:4px;
   padding:8px 10px;
@@ -271,7 +268,6 @@
   padding:14px 16px;
   display:flex;align-items:center;justify-content:space-between;
 }
-
 .bs-overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.85);
@@ -406,7 +402,6 @@
   background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);
   border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:#fb923c;
 }
-
 .bs-auto-round-info{
   margin:0 20px 8px;
   background:rgba(139,92,246,0.08);
@@ -416,7 +411,6 @@
   display:flex;align-items:center;gap:8px;
   font-size:12px;color:rgba(255,255,255,0.5);font-weight:600;
 }
-
 .bs-footer{
   display:flex;align-items:center;gap:10px;
   padding:14px 20px 6px;
@@ -437,7 +431,6 @@
 }
 .bs-book-btn:not(:disabled):active{transform:scale(0.95);}
 .bs-book-btn:disabled{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.18);box-shadow:none;cursor:not-allowed;}
-
 .pop-enter-active{transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);}
 .pop-leave-active{transition:all 0.2s ease-in;}
 .pop-enter-from,.pop-leave-to{opacity:0;transform:scale(0.88) translateY(24px);}
@@ -447,7 +440,6 @@
 .purchase-slide-enter-active{transition:all 0.38s cubic-bezier(0.16,1,0.3,1);}
 .purchase-slide-leave-active{transition:all 0.25s ease-in;}
 .purchase-slide-enter-from,.purchase-slide-leave-to{transform:translateY(100%);}
-
 .book-sheet-fab{
   position:fixed;
   bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
@@ -462,8 +454,6 @@
 }
 .book-sheet-fab:active{transform:scale(0.88);}
 .book-sheet-fab.fab-hidden{transform:translateY(140%);opacity:0;pointer-events:none;}
-
-/* ── ফিক্সড হেডার ইউজার কার্ড ── */
 .header-user-card{
   cursor:pointer;
   display:flex;align-items:center;gap:8px;
@@ -586,7 +576,7 @@
             </div>
           </div>
 
-          <!-- Step 3: Round — Dropdown (compact, অটো pre-selected) -->
+          <!-- Step 3: Round -->
           <div style="margin-bottom:14px;">
             <div class="step-label">
               <span class="step-num" style="background:#f97316;">3</span> Round সিলেক্ট করুন
@@ -728,96 +718,53 @@
     </div>
   </transition>
 
-  <!-- ═══════════════════════════════════════
-       BOOK SHEET POPUP — CIRCULAR DESIGN
-  ═══════════════════════════════════════ -->
+  <!-- BOOK SHEET POPUP -->
   <transition name="slide">
     <div v-if="bookSheetModal.show" class="bs-overlay" @click.self="closeBookSheet">
       <div class="bs-popup" @click.stop>
         <div class="bs-popup-handle"></div>
-
-        <!-- Round Navigation Header -->
         <div class="bs-round-nav">
-          <div class="bs-nav-arrow" :class="{disabled: bookSheetModal.roundIndex===0}" @click="bsChangeRound(-1)">
-            &#8249;
-          </div>
+          <div class="bs-nav-arrow" :class="{disabled: bookSheetModal.roundIndex===0}" @click="bsChangeRound(-1)">&#8249;</div>
           <div class="bs-round-center">
             <div class="bs-round-title">{{ bsCurrentRound.label }}</div>
             <div class="bs-round-time">{{ bsCurrentRound.time }}</div>
           </div>
-          <div class="bs-nav-arrow" :class="{disabled: bookSheetModal.roundIndex===bsRounds.length-1}" @click="bsChangeRound(1)">
-            &#8250;
-          </div>
-          <div class="bs-close" @click="closeBookSheet">
-            <i class="fa-solid fa-xmark" style="font-size:13px;"></i>
-          </div>
+          <div class="bs-nav-arrow" :class="{disabled: bookSheetModal.roundIndex===bsRounds.length-1}" @click="bsChangeRound(1)">&#8250;</div>
+          <div class="bs-close" @click="closeBookSheet"><i class="fa-solid fa-xmark" style="font-size:13px;"></i></div>
         </div>
-
-        <!-- Auto-selected round info -->
         <div class="bs-auto-round-info">
           <i class="fa-solid fa-clock" style="color:#8b5cf6;font-size:13px;"></i>
           <span>বর্তমান সময় অনুযায়ী <strong style="color:#a78bfa;">{{ bsCurrentRound.label }}</strong> অটো সিলেক্ট হয়েছে</span>
         </div>
-
-        <!-- Scrollable content area -->
         <div class="bs-scrollable">
-
-          <!-- Amount Selection -->
           <div class="bs-section-header">Select Amount</div>
           <div class="bs-amt-scroll">
             <div class="bs-amt-row">
-              <button v-for="amt in bsAmounts" :key="amt"
-                class="bs-amt"
-                :class="{ active: bookSheetModal.selectedAmt === amt }"
-                @click="bookSheetModal.selectedAmt = amt">
-                ৳{{ amt }}
-              </button>
+              <button v-for="amt in bsAmounts" :key="amt" class="bs-amt" :class="{ active: bookSheetModal.selectedAmt === amt }" @click="bookSheetModal.selectedAmt = amt">৳{{ amt }}</button>
             </div>
           </div>
-
-          <!-- Legend -->
           <div class="bs-legend">
-            <div class="bs-leg">
-              <div class="bs-leg-dot" style="background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.7);"></div>
-              Selected
-            </div>
-            <div class="bs-leg">
-              <div class="bs-leg-dot" style="background:rgba(239,68,68,0.5);"></div>
-              Taken
-            </div>
-            <div class="bs-leg">
-              <div class="bs-leg-dot" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);"></div>
-              Available
-            </div>
+            <div class="bs-leg"><div class="bs-leg-dot" style="background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.7);"></div>Selected</div>
+            <div class="bs-leg"><div class="bs-leg-dot" style="background:rgba(239,68,68,0.5);"></div>Taken</div>
+            <div class="bs-leg"><div class="bs-leg-dot" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);"></div>Available</div>
           </div>
-
-          <!-- Sheet Grid — 2 rows, horizontal scroll, circular -->
           <div class="bs-section-header">Select Sheet No</div>
           <div class="bs-sheets-scroll">
             <div class="bs-sheets-grid">
-              <div v-for="sheet in bsSheetList" :key="sheet.label"
-                class="bs-sheet"
-                :class="{
-                  selected: bookSheetModal.selectedSheets.includes(sheet.label),
-                  taken: bsTakenSheets.includes(sheet.label)
-                }"
+              <div v-for="sheet in bsSheetList" :key="sheet.label" class="bs-sheet"
+                :class="{selected: bookSheetModal.selectedSheets.includes(sheet.label), taken: bsTakenSheets.includes(sheet.label)}"
                 @click="bsToggleSheet(sheet.label)">
                 <div v-if="bsTakenSheets.includes(sheet.label)" class="bs-taken-line"></div>
                 <span style="position:relative;z-index:1;word-break:break-all;padding:2px;">{{ sheet.label }}</span>
               </div>
             </div>
           </div>
-
-          <!-- Selected tags summary -->
           <div v-if="bookSheetModal.selectedSheets.length > 0" class="bs-selected-tags">
             <span style="font-size:10px;color:rgba(249,115,22,0.7);font-weight:700;margin-right:4px;align-self:center;">Selected:</span>
             <span v-for="s in bookSheetModal.selectedSheets" :key="s" class="bs-sel-tag">{{ s }}</span>
           </div>
-
           <div style="height:8px;"></div>
         </div>
-
-        <!-- Footer -->
         <div class="bs-footer">
           <div class="bs-stat-box">
             <div class="bs-stat-label">Total Sheet</div>
@@ -827,14 +774,9 @@
             <div class="bs-stat-label">Total Amount</div>
             <div class="bs-stat-val" style="color:#fb923c;">৳{{ bookSheetModal.selectedSheets.length * (bookSheetModal.selectedAmt||0) }}</div>
           </div>
-          <button class="bs-book-btn"
-            :disabled="bookSheetModal.selectedSheets.length===0 || !bookSheetModal.selectedAmt || bookSheetModal.booking"
-            @click="handleBookSheet">
+          <button class="bs-book-btn" :disabled="bookSheetModal.selectedSheets.length===0 || !bookSheetModal.selectedAmt || bookSheetModal.booking" @click="handleBookSheet">
             <span v-if="bookSheetModal.booking" class="spinner" style="width:16px;height:16px;border-width:2px;"></span>
-            <template v-else>
-              <i class="fa-solid fa-bookmark" style="font-size:13px;"></i>
-              Book Now &rarr;
-            </template>
+            <template v-else><i class="fa-solid fa-bookmark" style="font-size:13px;"></i>Book Now &rarr;</template>
           </button>
         </div>
       </div>
@@ -843,14 +785,8 @@
 
   <!-- HOME PAGE -->
   <div style="display:flex;flex-direction:column;height:100vh;">
-
-    <!-- ════════════════════════
-         HEADER
-    ════════════════════════ -->
     <header class="app-header" style="position:sticky;top:0;flex-shrink:0;">
       <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
-
-        <!-- বাম পাশ: Logo + Title -->
         <div style="display:flex;align-items:center;gap:11px;flex-shrink:0;">
           <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;overflow:hidden;flex-shrink:0;">
             <img v-if="logoUrl" :src="logoUrl" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" @error="logoUrl=''">
@@ -861,54 +797,27 @@
             <div style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:1px;">H24 Online Platform</div>
           </div>
         </div>
-
-        <!-- ডান পাশ: User Info — ফিক্সড layout -->
         <div style="display:flex;align-items:center;gap:9px;flex-shrink:0;">
-
-          <!-- Login button (লগইন না থাকলে) -->
-          <a v-if="!isLoggedIn" href="login.html"
-            style="cursor:pointer;background:var(--primary);border-radius:11px;padding:9px 16px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;">
-            Login
-          </a>
-
-          <!-- User Name + Balance + Avatar — single compact block -->
+          <a v-if="!isLoggedIn" href="login.html" style="cursor:pointer;background:var(--primary);border-radius:11px;padding:9px 16px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;">Login</a>
           <div v-if="isLoggedIn" class="header-user-card" @click="goPage('account.html')">
             <div class="header-user-info">
-              <!-- নাম -->
-              <div class="header-user-name">
-                {{ userData.name || userData.displayName || authDisplayName || 'User' }}
-              </div>
-              <!-- Balance — Online এর জায়গায়, ৳1045.00 ফরম্যাট -->
+              <div class="header-user-name">{{ userData.name || userData.displayName || authDisplayName || 'User' }}</div>
               <div class="header-user-balance">
                 <i class="fa-solid fa-wallet" style="font-size:10px;opacity:0.8;"></i>
                 ৳{{ Number(userBalance).toFixed(2) }}
               </div>
             </div>
-            <!-- Avatar + Online dot -->
             <div style="position:relative;flex-shrink:0;">
               <div class="avatar-ring" style="width:42px;height:42px;">
                 <div class="avatar-inner" style="width:100%;height:100%;">
                   <img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;">
                 </div>
               </div>
-              <!-- Online status dot -->
-              <span style="
-                position:absolute;
-                bottom:1px;right:1px;
-                width:11px;height:11px;
-                background:var(--green);
-                border-radius:50%;
-                border:2px solid var(--bg);
-                display:block;
-                box-shadow:0 0 6px rgba(34,197,94,0.8);
-              "></span>
+              <span style="position:absolute;bottom:1px;right:1px;width:11px;height:11px;background:var(--green);border-radius:50%;border:2px solid var(--bg);display:block;box-shadow:0 0 6px rgba(34,197,94,0.8);"></span>
             </div>
           </div>
-
         </div>
       </div>
-
-      <!-- Notice Bar -->
       <div class="notice-bar" style="padding:6px 12px;overflow:hidden;">
         <span class="notice-scroll">📢 {{ noticeMessage }}</span>
       </div>
@@ -1033,7 +942,6 @@
     <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
       <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></a>
       <div @click="goProtected('add-money.html')" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Deposit</span></div>
-      <!-- LIVE button -->
       <div @click="goLiveNav" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;touch-action:manipulation;cursor:pointer;">
         <span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span>
       </div>
@@ -1102,9 +1010,7 @@ createApp({
     const announcementModal=ref(false), checkInClaimed=ref(false), navHidden=ref(false);
     const rounds=ref([]), sheetOptions=ref([]);
     const liveNavUrl=ref('');
-
     const iconMap={facebook:'fa-brands fa-facebook-f',instagram:'fa-brands fa-instagram',tiktok:'fa-brands fa-tiktok',youtube:'fa-brands fa-youtube',telegram:'fa-brands fa-telegram',whatsapp:'fa-brands fa-whatsapp'};
-
     const popup=ref({show:false,type:'',title:'',msg:'',btnText:'OK',confirm:null});
 
     const purchaseModal=ref({
@@ -1212,6 +1118,7 @@ createApp({
       if(idx>=0)bsm.selectedSheets.splice(idx,1);else bsm.selectedSheets.push(label);
     };
 
+    // ✅ FIX: handleBookSheet — atomic transaction
     const handleBookSheet=async()=>{
       const bsm=bookSheetModal.value;
       if(!bsm.selectedAmt||bsm.selectedSheets.length===0)return;
@@ -1220,17 +1127,28 @@ createApp({
       const roundLabel=bsCurrentRound.value.label;
       const roundTime=bsCurrentRound.value.time;
       const roundFull=roundLabel+(roundTime?' - '+roundTime:'');
-      if(userBalance.value<totalPrice){showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${Number(userBalance.value).toFixed(2)}।`,'Deposit');return;}
+
+      if(userBalance.value<totalPrice){
+        showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${Number(userBalance.value).toFixed(2)}।`,'Deposit');
+        return;
+      }
+
       showPopup('confirm','Confirm Booking',`${roundFull}\nSheet: ${bsm.selectedSheets.join(', ')}\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
-        popup.value.show=false;bsm.booking=true;
+        popup.value.show=false;
+        bsm.booking=true;
         try{
+          // Pre-create refs outside transaction
+          const bookingRef=doc(collection(db,'sheetBookings'));
+          const orderRefs=bsm.selectedSheets.map(()=>doc(collection(db,'orders')));
+
           await runTransaction(db,async(t)=>{
             const uRef=doc(db,'users',uid);
             const uDoc=await t.get(uRef);
             if((uDoc.data().balance||0)<totalPrice)throw new Error('Low Balance');
+
             t.update(uRef,{balance:uDoc.data().balance-totalPrice});
-            // sheetBookings — একটা document সব sheets সহ
-            t.set(doc(collection(db,'sheetBookings')),{
+
+            t.set(bookingRef,{
               userId:uid,
               userName:userData.value?.name||userData.value?.displayName||authDisplayName.value||'User',
               userPhone:userData.value?.phone||'',
@@ -1245,9 +1163,9 @@ createApp({
               createdAt:serverTimestamp(),
               updatedAt:serverTimestamp(),
             });
-            // orders — প্রতিটি sheet আলাদা order হিসেবে save (order history + admin app)
-            for(const sh of bsm.selectedSheets){
-              t.set(doc(collection(db,'orders')),{
+
+            bsm.selectedSheets.forEach((sh,i)=>{
+              t.set(orderRefs[i],{
                 userId:uid,
                 userName:userData.value?.name||userData.value?.displayName||authDisplayName.value||'User',
                 userPhone:userData.value?.phone||'',
@@ -1272,8 +1190,9 @@ createApp({
                 createdAt:serverTimestamp(),
                 updatedAt:serverTimestamp(),
               });
-            }
+            });
           });
+
           bsm.show=false;
           showPopup('success','বুকিং সফল! 🎉',`${roundLabel} Round-এ ${bsm.selectedSheets.length}টি Sheet বুক হয়েছে।\nমোট: ৳${totalPrice}`,'Orders');
         }catch(e){
@@ -1354,13 +1273,45 @@ createApp({
     };
 
     const addReferralCommission=async(buyerUid,orderPrice)=>{
-      try{const bs=await getDoc(doc(db,'users',buyerUid));if(!bs.exists())return;const rb=bs.data().referredBy;if(!rb)return;const rq=query(collection(db,'users'),where('referralCode','==',rb));const rs=await getDocs(rq);if(rs.empty)return;const rid=rs.docs[0].id;const c=Math.floor(orderPrice*0.10);if(c<=0)return;await updateDoc(doc(db,'users',rid),{balance:increment(c)});const rd=doc(db,'referrals',rid);const rdoc=await getDoc(rd);if(rdoc.exists())await updateDoc(rd,{totalEarned:increment(c)});else await setDoc(rd,{totalRefs:0,totalEarned:c});await addDoc(collection(db,'balanceLogs'),{userId:rid,type:'referral',amount:c,note:'Refer Bonus',createdAt:serverTimestamp()});}catch(e){}
+      try{
+        const bs=await getDoc(doc(db,'users',buyerUid));
+        if(!bs.exists())return;
+        const rb=bs.data().referredBy;
+        if(!rb)return;
+        const rq=query(collection(db,'users'),where('referralCode','==',rb));
+        const rs=await getDocs(rq);
+        if(rs.empty)return;
+        const rid=rs.docs[0].id;
+        const c=Math.floor(orderPrice*0.10);
+        if(c<=0)return;
+        await updateDoc(doc(db,'users',rid),{balance:increment(c)});
+        const rd=doc(db,'referrals',rid);
+        const rdoc=await getDoc(rd);
+        if(rdoc.exists())await updateDoc(rd,{totalEarned:increment(c)});
+        else await setDoc(rd,{totalRefs:0,totalEarned:c});
+        await addDoc(collection(db,'balanceLogs'),{userId:rid,type:'referral',amount:c,note:'Refer Bonus',createdAt:serverTimestamp()});
+      }catch(e){}
     };
 
     const updateTurnoverProgress=async(uid,spentAmount)=>{
-      try{const snap=await getDocs(query(collection(db,'turnovers'),where('userId','==',uid),where('status','==','active')));let remaining=spentAmount;for(const d of snap.docs){if(remaining<=0)break;const data=d.data();const needed=data.required-(data.done||0);if(needed<=0){await updateDoc(doc(db,'turnovers',d.id),{status:'completed',done:data.required});continue;}const toAdd=Math.min(remaining,needed);const newDone=(data.done||0)+toAdd;if(newDone>=data.required)await updateDoc(doc(db,'turnovers',d.id),{done:data.required,status:'completed'});else await updateDoc(doc(db,'turnovers',d.id),{done:newDone});remaining-=toAdd;}}catch(e){}
+      try{
+        const snap=await getDocs(query(collection(db,'turnovers'),where('userId','==',uid),where('status','==','active')));
+        let remaining=spentAmount;
+        for(const d of snap.docs){
+          if(remaining<=0)break;
+          const data=d.data();
+          const needed=data.required-(data.done||0);
+          if(needed<=0){await updateDoc(doc(db,'turnovers',d.id),{status:'completed',done:data.required});continue;}
+          const toAdd=Math.min(remaining,needed);
+          const newDone=(data.done||0)+toAdd;
+          if(newDone>=data.required)await updateDoc(doc(db,'turnovers',d.id),{done:data.required,status:'completed'});
+          else await updateDoc(doc(db,'turnovers',d.id),{done:newDone});
+          remaining-=toAdd;
+        }
+      }catch(e){}
     };
 
+    // ✅ FIX: handlePurchaseBuy — pre-create refs, clean transaction
     const handlePurchaseBuy=async()=>{
       const pm=purchaseModal.value;
       if(pm.selectedPkg===null)return showPopup('error','প্যাকেজ নেই','অন্তত একটি প্যাকেজ সিলেক্ট করুন।');
@@ -1375,95 +1326,203 @@ createApp({
       const orderCount=pm.selectedSheets.length;
 
       const makeOrderData=(sheetLabel,roundLabel)=>({
-        // ── User info ──
         userId:uid,
         userName:userData.value?.name||userData.value?.displayName||authDisplayName.value||'User',
         userPhone:userData.value?.phone||'',
-        // ── Product info ──
         productId:pm.product.id||'',
         productName:pm.product.name||'',
         productImage:pm.product.image||'',
         category:pm.product.category||'',
-        // ── Package info ──
         packageName:pack.name,
         packagePrice:pack.price,
         price:pack.price,
         quantity:1,
         totalPrice:pack.price,
-        // ── Sheet & Round ──
         playerId:sheetLabel,
         sheetNo:sheetLabel,
         sheetInfo:sheetLabel,
         selectedRound:roundLabel,
         roundInfo:roundLabel,
         roundLabel:roundLabel,
-        // ── Meta ──
         createdAt:serverTimestamp(),
         updatedAt:serverTimestamp(),
       });
 
       if(pm.payMethod==='wallet'){
         if(userBalance.value<totalPrice)return showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু ব্যালেন্স ৳${Number(userBalance.value).toFixed(2)}।`,'Deposit');
+
         showPopup('confirm','Confirm Purchase',`${pack.name}\nSheet: ${sheetStr}\nRound: ${roundStr}\n\nমোট অর্ডার: ${orderCount}টি\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
-          popup.value.show=false;purchaseModal.value.show=false;
+          popup.value.show=false;
+          purchaseModal.value.show=false;
           try{
+            // ✅ Pre-create all order refs OUTSIDE transaction
+            const orderRefs=pm.selectedSheets.map(()=>doc(collection(db,'orders')));
+            const selectedSheets=[...pm.selectedSheets];
+            const selectedRound=pm.selectedRound;
+
             await runTransaction(db,async(t)=>{
               const uRef=doc(db,'users',uid);
               const uDoc=await t.get(uRef);
-              if(uDoc.data().balance<totalPrice)throw'Low Balance';
+              if((uDoc.data().balance||0)<totalPrice)throw new Error('Low Balance');
               t.update(uRef,{balance:uDoc.data().balance-totalPrice});
-              for(const sh of pm.selectedSheets){
-                t.set(doc(collection(db,'orders')),{...makeOrderData(sh,pm.selectedRound),status:'pending',paymentMethod:'wallet'});
-              }
+              selectedSheets.forEach((sh,i)=>{
+                t.set(orderRefs[i],{
+                  ...makeOrderData(sh,selectedRound),
+                  status:'pending',
+                  paymentMethod:'wallet'
+                });
+              });
             });
-            await addReferralCommission(uid,totalPrice);await updateTurnoverProgress(uid,totalPrice);
+
+            // ✅ Side effects AFTER successful transaction
+            addReferralCommission(uid,totalPrice).catch(()=>{});
+            updateTurnoverProgress(uid,totalPrice).catch(()=>{});
             showPopup('success','Order Placed! 🎉',`${orderCount}টি অর্ডার সম্পন্ন হয়েছে।\nমোট: ৳${totalPrice}`,'Orders');
-          }catch(e){showPopup('error','Failed','Transaction failed. Try again.');}
+          }catch(e){
+            if(e.message==='Low Balance')showPopup('error','Low Balance','ব্যালেন্স পর্যাপ্ত নয়।','Deposit');
+            else showPopup('error','Failed','Transaction failed. Try again.');
+          }
         });
 
       }else if(pm.payMethod==='direct'){
         if(!pm.trxId||pm.trxId.length<5)return showPopup('error','Invalid TrxID','সঠিক Transaction ID দিন।');
         pm.verifying=true;
         try{
-          const trxId=pm.trxId.trim().toUpperCase();let verifyOk=false,verifyMsg='';
-          try{const txSnap=await getDoc(doc(db,'transactions',trxId));if(txSnap.exists()){const txData=txSnap.data();if(txData.status==='used')verifyMsg='এই TrxID আগেই ব্যবহার হয়েছে।';else if(Number(txData.amount)!==totalPrice)verifyMsg=`Amount মিলছে না। Expected ৳${totalPrice}.`;else{await updateDoc(doc(db,'transactions',trxId),{status:'used',usedBy:uid,usedAt:serverTimestamp()});verifyOk=true;}}}catch(fe){}
-          if(!verifyOk&&!verifyMsg&&PAYMENT_CONFIG_READY&&PAYMENT_SCRIPT_URL){try{const vRes=await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${totalPrice}`);if(vRes.ok){const vData=await vRes.json();verifyOk=vData.status==='success';verifyMsg=vData.message||'';}}catch(fe){}}
-          if(verifyOk){
-            for(const sh of pm.selectedSheets){
-              await addDoc(collection(db,'orders'),{...makeOrderData(sh,pm.selectedRound),status:'processing',paymentMethod:pm.gateway+'_auto',trxId,isAutoVerified:true});
+          const trxId=pm.trxId.trim().toUpperCase();
+          let verifyOk=false,verifyMsg='';
+          try{
+            const txSnap=await getDoc(doc(db,'transactions',trxId));
+            if(txSnap.exists()){
+              const txData=txSnap.data();
+              if(txData.status==='used')verifyMsg='এই TrxID আগেই ব্যবহার হয়েছে।';
+              else if(Number(txData.amount)!==totalPrice)verifyMsg=`Amount মিলছে না। Expected ৳${totalPrice}.`;
+              else{
+                await updateDoc(doc(db,'transactions',trxId),{status:'used',usedBy:uid,usedAt:serverTimestamp()});
+                verifyOk=true;
+              }
             }
-            await addReferralCommission(uid,totalPrice);pm.show=false;
+          }catch(fe){}
+
+          if(!verifyOk&&!verifyMsg&&PAYMENT_CONFIG_READY&&PAYMENT_SCRIPT_URL){
+            try{
+              const vRes=await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${totalPrice}`);
+              if(vRes.ok){const vData=await vRes.json();verifyOk=vData.status==='success';verifyMsg=vData.message||'';}
+            }catch(fe){}
+          }
+
+          if(verifyOk){
+            // Pre-create refs for direct payment orders too
+            const orderRefs=pm.selectedSheets.map(()=>doc(collection(db,'orders')));
+            const selectedSheets=[...pm.selectedSheets];
+            const selectedRound=pm.selectedRound;
+
+            await runTransaction(db,async(t)=>{
+              selectedSheets.forEach((sh,i)=>{
+                t.set(orderRefs[i],{
+                  ...makeOrderData(sh,selectedRound),
+                  status:'processing',
+                  paymentMethod:pm.gateway+'_auto',
+                  trxId,
+                  isAutoVerified:true
+                });
+              });
+            });
+
+            addReferralCommission(uid,totalPrice).catch(()=>{});
+            pm.show=false;
             showPopup('success','Payment Verified! ✅',`${orderCount}টি অর্ডার সম্পন্ন।`,'Orders');
-          }else showPopup('error','Verification Failed ❌',verifyMsg||'TrxID মিলছে না।');
-        }catch(e){showPopup('error','Error','Connection failed. Try again.');}
-        finally{pm.verifying=false;}
+          }else{
+            showPopup('error','Verification Failed ❌',verifyMsg||'TrxID মিলছে না।');
+          }
+        }catch(e){
+          showPopup('error','Error','Connection failed. Try again.');
+        }finally{pm.verifying=false;}
 
       }else if(pm.payMethod==='eps'){
         if(!pm.epsRef||pm.epsRef.length<4)return showPopup('error','EPS Reference','EPS Reference নম্বর দিন।');
         pm.verifying=true;
         try{
-          for(const sh of pm.selectedSheets){
-            await addDoc(collection(db,'orders'),{...makeOrderData(sh,pm.selectedRound),status:'pending',paymentMethod:'eps',epsRef:pm.epsRef.trim(),isEps:true});
+          const selectedSheets=[...pm.selectedSheets];
+          const selectedRound=pm.selectedRound;
+          for(const sh of selectedSheets){
+            await addDoc(collection(db,'orders'),{
+              ...makeOrderData(sh,selectedRound),
+              status:'pending',
+              paymentMethod:'eps',
+              epsRef:pm.epsRef.trim(),
+              isEps:true
+            });
           }
-          pm.show=false;showPopup('success','Order Submitted!','EPS পেমেন্ট যাচাই হলে অর্ডার প্রসেস হবে।','Orders');
-        }catch(e){showPopup('error','Error','Order submit failed. Try again.');}
-        finally{pm.verifying=false;}
+          pm.show=false;
+          showPopup('success','Order Submitted!','EPS পেমেন্ট যাচাই হলে অর্ডার প্রসেস হবে।','Orders');
+        }catch(e){
+          showPopup('error','Error','Order submit failed. Try again.');
+        }finally{pm.verifying=false;}
       }
     };
 
+    // ✅ FIX: claimDailyBonus — atomic, increment() ছাড়া manual balance
     const claimDailyBonus=async()=>{
       if(!isLoggedIn.value){goPage('login.html');return;}
       if(checkInClaimed.value)return;
-      const user=auth.currentUser;if(!user){goPage('login.html');return;}
-      const uid=user.uid,today=new Date().toISOString().slice(0,10),ref2=doc(db,'checkins',`${uid}_${today}`);
+      const user=auth.currentUser;
+      if(!user){goPage('login.html');return;}
+      const uid=user.uid;
+      const today=new Date().toISOString().slice(0,10);
+      const checkinRef=doc(db,'checkins',`${uid}_${today}`);
+      const uRef=doc(db,'users',uid);
+
       try{
-        const snap=await getDoc(ref2);if(snap.exists()){checkInClaimed.value=true;showPopup('error','Already Claimed','আজকের বোনাস আগেই নেওয়া হয়েছে।');return;}
-        await setDoc(ref2,{userId:uid,date:today,amount:10,claimedAt:serverTimestamp()});
-        await updateDoc(doc(db,'users',uid),{balance:increment(10)});
-        await addDoc(collection(db,'balanceLogs'),{userId:uid,type:'daily_bonus',amount:10,note:'Daily Check-In',createdAt:serverTimestamp()});
-        await addDoc(collection(db,'turnovers'),{userId:uid,type:'daily_bonus',label:'Daily Bonus Turnover (৳10)',required:10,done:0,status:'active',createdAt:serverTimestamp()});
-        checkInClaimed.value=true;showPopup('success','বোনাস পেয়েছেন! 🎉','৳১০ আপনার ওয়ালেটে যোগ হয়েছে।');
-      }catch(e){showPopup('error','Error','কিছু সমস্যা হয়েছে।');}
+        await runTransaction(db,async(t)=>{
+          // ✅ transaction এ সব t.get() আগে করতে হবে
+          const checkinSnap=await t.get(checkinRef);
+          const uSnap=await t.get(uRef);
+
+          if(checkinSnap.exists())throw new Error('ALREADY_CLAIMED');
+
+          const currentBalance=uSnap.exists()?(uSnap.data().balance||0):0;
+
+          // ✅ increment() নয়, manual calculation
+          t.set(checkinRef,{
+            userId:uid,
+            date:today,
+            amount:10,
+            claimedAt:serverTimestamp()
+          });
+          t.update(uRef,{balance:currentBalance+10});
+        });
+
+        // ✅ Transaction সফল — side effects আলাদা করে
+        addDoc(collection(db,'balanceLogs'),{
+          userId:uid,
+          type:'daily_bonus',
+          amount:10,
+          note:'Daily Check-In',
+          createdAt:serverTimestamp()
+        }).catch(()=>{});
+
+        addDoc(collection(db,'turnovers'),{
+          userId:uid,
+          type:'daily_bonus',
+          label:'Daily Bonus Turnover (৳10)',
+          required:10,
+          done:0,
+          status:'active',
+          createdAt:serverTimestamp()
+        }).catch(()=>{});
+
+        checkInClaimed.value=true;
+        showPopup('success','বোনাস পেয়েছেন! 🎉','৳১০ আপনার ওয়ালেটে যোগ হয়েছে।');
+
+      }catch(e){
+        if(e.message==='ALREADY_CLAIMED'){
+          checkInClaimed.value=true;
+          showPopup('error','Already Claimed','আজকের বোনাস আগেই নেওয়া হয়েছে।');
+        }else{
+          console.error('CheckIn error:',e);
+          showPopup('error','Error','কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+        }
+      }
     };
 
     const loadAllData=async()=>{
@@ -1523,7 +1582,7 @@ createApp({
           isLoggedIn.value=true;
           if(user.displayName){
             authDisplayName.value=user.displayName;
-            userData.value={...userData.value, name: user.displayName};
+            userData.value={...userData.value,name:user.displayName};
           }
           localStorage.setItem('userId',user.uid);
           updateDoc(doc(db,'users',user.uid),{isOnline:true,lastSeen:serverTimestamp()}).catch(()=>{});
@@ -1535,6 +1594,7 @@ createApp({
               userData.value={...data};
             }
           });
+          // ✅ Check today's check-in status on login
           const today=new Date().toISOString().slice(0,10);
           getDoc(doc(db,'checkins',`${user.uid}_${today}`)).then(s=>{checkInClaimed.value=s.exists();}).catch(()=>{});
         }else{
