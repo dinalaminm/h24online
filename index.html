@@ -11,6 +11,157 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 <link rel="stylesheet" href="assets/css/style.css">
 <style>
+/* ── Active Users pulse dot ── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.6; }
+  100% { transform: scale(1.4);  opacity: 0; }
+}
+
+/* ── Active Users Eye Button ── */
+.active-users-btn {
+  position: relative;
+  cursor: pointer;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 11px;
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.15s;
+  user-select: none;
+}
+.active-users-btn:active { background: rgba(255,255,255,0.12); transform: scale(0.92); }
+.eye-icon {
+  font-size: 15px;
+  color: rgba(255,255,255,0.55);
+}
+.au-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: #22c55e;
+  border: 2px solid var(--bg, #0e0e1a);
+  border-radius: 50%;
+  min-width: 17px; height: 17px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 900;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  padding: 0 4px;
+  box-shadow: 0 0 8px rgba(34,197,94,0.6);
+  animation: badge-pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes badge-pop {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+/* remove old dot refs */
+.active-dot-wrap, .active-dot, .active-dot-ring, .active-count, .active-label { display: none; }
+
+/* ── Active Users Dropdown ── */
+.au-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: linear-gradient(160deg, #1a1a2e, #12121f);
+  border: 1px solid rgba(34,197,94,0.18);
+  border-radius: 18px;
+  min-width: 230px;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 0 1px rgba(34,197,94,0.06) inset;
+  z-index: 2000;
+  scrollbar-width: none;
+}
+.au-dropdown::-webkit-scrollbar { display: none; }
+.au-header {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 7px;
+}
+.au-header-dot {
+  width: 7px; height: 7px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(34,197,94,0.8);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+.au-header-text {
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.au-total-badge {
+  margin-left: auto;
+  background: rgba(34,197,94,0.15);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 20px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #4ade80;
+}
+.au-item {
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: background 0.15s;
+}
+.au-item:hover { background: rgba(255,255,255,0.03); }
+.au-item-dot {
+  width: 8px; height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 5px rgba(34,197,94,0.6);
+}
+.au-item-dot.fake {
+  background: rgba(34,197,94,0.4);
+  box-shadow: none;
+}
+.au-item-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+.au-item-email {
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+.au-item-time {
+  margin-left: auto;
+  font-size: 9.5px;
+  color: rgba(255,255,255,0.22);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.au-footer {
+  padding: 9px 14px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ── Existing styles ── */
 .purchase-overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.75);
@@ -486,6 +637,11 @@
   margin-top:2px;
   white-space:nowrap;
 }
+
+/* au dropdown slide transition */
+.au-drop-enter-active { transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1); }
+.au-drop-leave-active { transition: all 0.15s ease-in; }
+.au-drop-enter-from, .au-drop-leave-to { opacity:0; transform: scale(0.92) translateY(-8px); }
 </style>
 </head>
 <body>
@@ -787,6 +943,8 @@
   <div style="display:flex;flex-direction:column;height:100vh;">
     <header class="app-header" style="position:sticky;top:0;flex-shrink:0;">
       <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+
+        <!-- Left: Logo -->
         <div style="display:flex;align-items:center;gap:11px;flex-shrink:0;">
           <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;overflow:hidden;flex-shrink:0;">
             <img v-if="logoUrl" :src="logoUrl" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" @error="logoUrl=''">
@@ -797,7 +955,46 @@
             <div style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:1px;">H24 Online Platform</div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:9px;flex-shrink:0;">
+
+        <!-- Right: Active Users + User/Login -->
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+
+          <!-- ══ ACTIVE USERS BUTTON ══ -->
+          <div class="active-users-btn" @click.stop="toggleActiveUsersPopup">
+            <i class="fa-solid fa-eye eye-icon"></i>
+            <span class="au-badge">{{ displayActiveCount }}</span>
+
+            <!-- Dropdown -->
+            <transition name="au-drop">
+              <div v-if="activeUsersPopup" class="au-dropdown" @click.stop>
+                <div class="au-header">
+                  <div class="au-header-dot"></div>
+                  <span class="au-header-text">Active Users</span>
+                  <span class="au-total-badge">{{ displayActiveCount }}</span>
+                </div>
+                <!-- Real users -->
+                <div v-for="u in activeUsersList" :key="u.uid" class="au-item">
+                  <div class="au-item-dot"></div>
+                  <div style="min-width:0;flex:1;">
+                    <div class="au-item-name">{{ u.name }}</div>
+                    <div class="au-item-email">{{ u.email }}</div>
+                  </div>
+                  <div class="au-item-time">{{ u.time }}</div>
+                </div>
+                <!-- Fake anonymous users -->
+                <div v-for="f in fakeUserList" :key="f.id" class="au-item">
+                  <div class="au-item-dot fake"></div>
+                  <div style="min-width:0;flex:1;">
+                    <div class="au-item-name" style="color:rgba(255,255,255,0.55);">{{ f.name }}</div>
+                  </div>
+                  <div class="au-item-time">{{ f.time }}</div>
+                </div>
+                <div class="au-footer">সব ব্যবহারকারী এনক্রিপ্টেড</div>
+              </div>
+            </transition>
+          </div>
+          <!-- ══ END ACTIVE USERS ══ -->
+
           <a v-if="!isLoggedIn" href="login.html" style="cursor:pointer;background:var(--primary);border-radius:11px;padding:9px 16px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;">Login</a>
           <div v-if="isLoggedIn" class="header-user-card" @click="goPage('account.html')">
             <div class="header-user-info">
@@ -1000,6 +1197,32 @@ const fireApp=initializeApp(firebaseConfig);
 const auth=getAuth(fireApp);
 const db=getFirestore(fireApp);
 
+// ══ Fake name pool for anonymous active users ══
+const FAKE_NAME_POOL = [
+  'Rahim ***','Karim ***','Jahangir ***','Sumon ***','Rubel ***',
+  'Milon ***','Rony ***','Shakib ***','Arif ***','Nayem ***',
+  'Sohel ***','Tuhin ***','Mahdi ***','Rifat ***','Imran ***',
+  'Rasel ***','Kabir ***','Tanvir ***','Maruf ***','Rakib ***',
+  'Alamin ***','Faruk ***','Hasan ***','Siam ***','Zubayer ***',
+  'Limon ***','Polash ***','Sajib ***','Rakin ***','Badhon ***',
+  'Shanto ***','Mahfuz ***','Anik ***','Pabel ***','Habib ***',
+  'Zahid ***','Rayhan ***','Asif ***','Nahid ***','Munna ***',
+  'Sajal ***','Tofail ***','Arman ***','Ripon ***','Shakil ***',
+  'Bellal ***','Roman ***','Dipu ***','Shuvo ***','Nabil ***',
+  'Rezaul ***','Emon ***','Borhan ***','Ahad ***','Sazzad ***',
+  'Ridoy ***','Shahed ***','Sopon ***','Miraj ***','Khokon ***',
+  'Titu ***','Biplob ***','Sujon ***','Masud ***','Robiul ***',
+  'Jewel ***','Sohag ***','Shorif ***','Farhan ***','Rashid ***',
+  'Naim ***','Sabbir ***','Kawsar ***','Rakibul ***','Azad ***',
+  'Shamim ***','Jibon ***','Kalam ***','Sagor ***','Hridoy ***',
+  'Akash ***','Faisal ***','Minhaj ***','Bishal ***','Mohan ***',
+  'Shawon ***','Mehedi ***','Shohag ***','Morshed ***','Palash ***',
+  'Jony ***','Badol ***','Tawhid ***','Ashraful ***','Rashed ***',
+  'Hira ***','Prodip ***','Arif ***','Mostak ***','Kamrul ***',
+];
+
+const FAKE_TIMES = ['Just now','1m ago','2m ago','3m ago','4m ago','5m ago','Just now','1m ago','2m ago','Just now'];
+
 createApp({
   setup() {
     const isLoggedIn=ref(false), userBalance=ref(0), userAvatar=ref('https://i.pravatar.cc/150?img=12'), userData=ref({});
@@ -1012,6 +1235,56 @@ createApp({
     const liveNavUrl=ref('');
     const iconMap={facebook:'fa-brands fa-facebook-f',instagram:'fa-brands fa-instagram',tiktok:'fa-brands fa-tiktok',youtube:'fa-brands fa-youtube',telegram:'fa-brands fa-telegram',whatsapp:'fa-brands fa-whatsapp'};
     const popup=ref({show:false,type:'',title:'',msg:'',btnText:'OK',confirm:null});
+
+    // ══ ACTIVE USERS STATE ══
+    const activeUsersPopup = ref(false);
+    const realActiveCount = ref(0);
+    const activeUsersList = ref([]); // real users from Firebase
+    const fakeOffset = ref(Math.floor(Math.random() * 11) + 80); // 80-90
+    const fakeUserList = ref([]); // shown in dropdown
+
+    // Total displayed count = real + fake
+    const displayActiveCount = computed(() => realActiveCount.value + fakeOffset.value);
+
+    // Build fake user list for dropdown (show ~8 fake users)
+    const buildFakeUserList = () => {
+      const shuffled = [...FAKE_NAME_POOL].sort(() => Math.random() - 0.5);
+      fakeUserList.value = shuffled.slice(0, 8).map((name, i) => ({
+        id: i,
+        name,
+        time: FAKE_TIMES[i % FAKE_TIMES.length]
+      }));
+    };
+    buildFakeUserList();
+
+    // Fluctuate fake count every 5-12 seconds — ±1 or ±2 randomly
+    const startFakeFluctuation = () => {
+      const tick = () => {
+        const r = Math.random();
+        let delta;
+        if (r < 0.4)       delta = 1;
+        else if (r < 0.7)  delta = -1;
+        else if (r < 0.85) delta = 2;
+        else                delta = -2;
+        const next = fakeOffset.value + delta;
+        if (next >= 76 && next <= 97) fakeOffset.value = next;
+        // Occasionally rebuild fake name list
+        if (Math.random() < 0.3) buildFakeUserList();
+        setTimeout(tick, 5000 + Math.random() * 7000);
+      };
+      setTimeout(tick, 4000 + Math.random() * 3000);
+    };
+    startFakeFluctuation();
+
+    // Toggle dropdown, close when clicking outside
+    const toggleActiveUsersPopup = () => {
+      activeUsersPopup.value = !activeUsersPopup.value;
+    };
+
+    // Close dropdown on outside click
+    const handleOutsideClick = () => { activeUsersPopup.value = false; };
+
+    // ══ END ACTIVE USERS ══
 
     const purchaseModal=ref({
       show:false,product:{},packages:[],selectedPkg:null,
@@ -1118,7 +1391,6 @@ createApp({
       if(idx>=0)bsm.selectedSheets.splice(idx,1);else bsm.selectedSheets.push(label);
     };
 
-    // ✅ FIX: handleBookSheet — atomic transaction
     const handleBookSheet=async()=>{
       const bsm=bookSheetModal.value;
       if(!bsm.selectedAmt||bsm.selectedSheets.length===0)return;
@@ -1137,7 +1409,6 @@ createApp({
         popup.value.show=false;
         bsm.booking=true;
         try{
-          // Pre-create refs outside transaction
           const bookingRef=doc(collection(db,'sheetBookings'));
           const orderRefs=bsm.selectedSheets.map(()=>doc(collection(db,'orders')));
 
@@ -1311,7 +1582,6 @@ createApp({
       }catch(e){}
     };
 
-    // ✅ FIX: handlePurchaseBuy — pre-create refs, clean transaction
     const handlePurchaseBuy=async()=>{
       const pm=purchaseModal.value;
       if(pm.selectedPkg===null)return showPopup('error','প্যাকেজ নেই','অন্তত একটি প্যাকেজ সিলেক্ট করুন।');
@@ -1355,7 +1625,6 @@ createApp({
           popup.value.show=false;
           purchaseModal.value.show=false;
           try{
-            // ✅ Pre-create all order refs OUTSIDE transaction
             const orderRefs=pm.selectedSheets.map(()=>doc(collection(db,'orders')));
             const selectedSheets=[...pm.selectedSheets];
             const selectedRound=pm.selectedRound;
@@ -1374,7 +1643,6 @@ createApp({
               });
             });
 
-            // ✅ Side effects AFTER successful transaction
             addReferralCommission(uid,totalPrice).catch(()=>{});
             updateTurnoverProgress(uid,totalPrice).catch(()=>{});
             showPopup('success','Order Placed! 🎉',`${orderCount}টি অর্ডার সম্পন্ন হয়েছে।\nমোট: ৳${totalPrice}`,'Orders');
@@ -1411,7 +1679,6 @@ createApp({
           }
 
           if(verifyOk){
-            // Pre-create refs for direct payment orders too
             const orderRefs=pm.selectedSheets.map(()=>doc(collection(db,'orders')));
             const selectedSheets=[...pm.selectedSheets];
             const selectedRound=pm.selectedRound;
@@ -1461,7 +1728,6 @@ createApp({
       }
     };
 
-    // ✅ FIX: claimDailyBonus — atomic, increment() ছাড়া manual balance
     const claimDailyBonus=async()=>{
       if(!isLoggedIn.value){goPage('login.html');return;}
       if(checkInClaimed.value)return;
@@ -1474,7 +1740,6 @@ createApp({
 
       try{
         await runTransaction(db,async(t)=>{
-          // ✅ transaction এ সব t.get() আগে করতে হবে
           const checkinSnap=await t.get(checkinRef);
           const uSnap=await t.get(uRef);
 
@@ -1482,7 +1747,6 @@ createApp({
 
           const currentBalance=uSnap.exists()?(uSnap.data().balance||0):0;
 
-          // ✅ increment() নয়, manual calculation
           t.set(checkinRef,{
             userId:uid,
             date:today,
@@ -1492,7 +1756,6 @@ createApp({
           t.update(uRef,{balance:currentBalance+10});
         });
 
-        // ✅ Transaction সফল — side effects আলাদা করে
         addDoc(collection(db,'balanceLogs'),{
           userId:uid,
           type:'daily_bonus',
@@ -1577,6 +1840,9 @@ createApp({
       let lastScrollY=0;
       document.addEventListener('scroll',(e)=>{if(e.target?.classList?.contains('page-scroll')){const cy=e.target.scrollTop;if(cy>lastScrollY+8&&cy>50)navHidden.value=true;else if(cy<lastScrollY-8||cy<10)navHidden.value=false;lastScrollY=cy;}},true);
 
+      // Close active users dropdown on outside click
+      document.addEventListener('click', handleOutsideClick);
+
       onAuthStateChanged(auth,(user)=>{
         if(user){
           isLoggedIn.value=true;
@@ -1586,6 +1852,27 @@ createApp({
           }
           localStorage.setItem('userId',user.uid);
           updateDoc(doc(db,'users',user.uid),{isOnline:true,lastSeen:serverTimestamp()}).catch(()=>{});
+
+          // ══ Real-time active users listener ══
+          onSnapshot(collection(db,'users'),(snap)=>{
+            const now=Date.now();
+            const actives=[];
+            snap.forEach(d=>{
+              const data=d.data();
+              const lastSeen=data.lastSeen?.toMillis?.()|| 0;
+              if(now - lastSeen < 5 * 60 * 1000){ // active within 5 minutes
+                actives.push({
+                  uid: d.id,
+                  name: data.name || data.displayName || 'User',
+                  email: data.email ? (data.email.substring(0,3) + '***@' + data.email.split('@')[1]) : '',
+                  time: 'Just now'
+                });
+              }
+            });
+            realActiveCount.value = actives.length;
+            activeUsersList.value = actives;
+          });
+
           onSnapshot(doc(db,'users',user.uid),(d)=>{
             if(d.exists()){
               const data=d.data();
@@ -1594,7 +1881,7 @@ createApp({
               userData.value={...data};
             }
           });
-          // ✅ Check today's check-in status on login
+
           const today=new Date().toISOString().slice(0,10);
           getDoc(doc(db,'checkins',`${user.uid}_${today}`)).then(s=>{checkInClaimed.value=s.exists();}).catch(()=>{});
         }else{
@@ -1617,6 +1904,8 @@ createApp({
       claimDailyBonus,copyNum,goLiveNav,
       bsAmounts,bsRounds,bsSheetList,bsCurrentRound,bsTakenSheets,
       bookSheetModal,openBookSheet,closeBookSheet,bsChangeRound,bsToggleSheet,handleBookSheet,
+      // Active users
+      activeUsersPopup,displayActiveCount,activeUsersList,fakeUserList,toggleActiveUsersPopup,
     };
   }
 }).mount('#app');
