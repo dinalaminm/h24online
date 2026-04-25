@@ -261,11 +261,21 @@ createApp({
     const urlRef = new URLSearchParams(window.location.search).get('ref');
     if (urlRef) regReferralCode.value = urlRef;
 
+    // ?next parameter
+    const nextPage = new URLSearchParams(window.location.search).get('next');
+    const redirectAfterLogin = () => {
+      if (nextPage === 'live') {
+        window.location.href = 'live.html';
+      } else {
+        window.location.href = 'index.html';
+      }
+    };
+
     onMounted(() => {
       onAuthStateChanged(auth, (user) => {
         if (user && !googlePhoneModal.value) {
           localStorage.setItem('userId', user.uid);
-          window.location.href = 'index.html';
+          redirectAfterLogin();
         }
       });
     });
@@ -372,7 +382,7 @@ createApp({
         }
         await updateDoc(doc(db, 'users', uid), { phone });
         googlePhoneModal.value = false;
-        window.location.href   = 'index.html';
+        redirectAfterLogin();
       } catch(e) {
         googlePhoneError.value = 'সমস্যা হয়েছে, আবার চেষ্টা করুন।';
       } finally {
@@ -382,7 +392,7 @@ createApp({
 
     const skipGooglePhone = () => {
       googlePhoneModal.value = false;
-      window.location.href   = 'index.html';
+      redirectAfterLogin();
     };
 
     // ✅ Email Registration
@@ -454,7 +464,7 @@ createApp({
         }
 
         localStorage.setItem('userId', uid);
-        window.location.href = 'index.html';
+        redirectAfterLogin();
 
       } catch(e) {
         if (e.code === 'auth/email-already-in-use') {
