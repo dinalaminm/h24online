@@ -1090,14 +1090,20 @@ onAuthStateChanged(h24Auth, async (user) => {
     currentUser = user;
     localStorage.setItem('userId', user.uid);
 
+    // ✅ Auth confirm হওয়ার সাথে সাথেই overlay hide করো — Firestore এর জন্য অপেক্ষা করবে না
+    currentUserData = { name: user.displayName || 'User', balance: 0, photoURL: user.photoURL || '' };
+    updateHud();
+    document.getElementById('authOverlay').classList.add('hidden');
+    document.getElementById('userHud').classList.add('show');
+
+    // Background এ Firestore থেকে full data load করো
     try {
         const snap = await getDoc(doc(h24db, 'users', user.uid));
-        currentUserData = snap.exists() ? snap.data() : { name: user.displayName || 'User', balance: 0, photoURL: '' };
-    } catch(e) {
-        currentUserData = { name: user.displayName || 'User', balance: 0, photoURL: '' };
-    }
-
-    updateHud();
+        if (snap.exists()) {
+            currentUserData = snap.data();
+            updateHud();
+        }
+    } catch(e) {}
 
     // Real-time balance listener
     onSnapshot(doc(h24db, 'users', user.uid), (d) => {
@@ -1106,9 +1112,6 @@ onAuthStateChanged(h24Auth, async (user) => {
             updateHud();
         }
     });
-
-    document.getElementById('authOverlay').classList.add('hidden');
-    document.getElementById('userHud').classList.add('show');
 
     // Auto-fill handrise name
     try {
