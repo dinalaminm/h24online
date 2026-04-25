@@ -1239,14 +1239,12 @@ createApp({
     // ══ ACTIVE USERS STATE ══
     const activeUsersPopup = ref(false);
     const realActiveCount = ref(0);
-    const activeUsersList = ref([]); // real users from Firebase
-    const fakeOffset = ref(Math.floor(Math.random() * 11) + 80); // 80-90
-    const fakeUserList = ref([]); // shown in dropdown
+    const activeUsersList = ref([]);
+    const fakeOffset = ref(Math.floor(Math.random() * 11) + 80);
+    const fakeUserList = ref([]);
 
-    // Total displayed count = real + fake
     const displayActiveCount = computed(() => realActiveCount.value + fakeOffset.value);
 
-    // Build fake user list for dropdown (show ~8 fake users)
     const buildFakeUserList = () => {
       const shuffled = [...FAKE_NAME_POOL].sort(() => Math.random() - 0.5);
       fakeUserList.value = shuffled.slice(0, 8).map((name, i) => ({
@@ -1257,7 +1255,6 @@ createApp({
     };
     buildFakeUserList();
 
-    // Fluctuate fake count every 5-12 seconds — ±1 or ±2 randomly
     const startFakeFluctuation = () => {
       const tick = () => {
         const r = Math.random();
@@ -1268,7 +1265,6 @@ createApp({
         else                delta = -2;
         const next = fakeOffset.value + delta;
         if (next >= 76 && next <= 97) fakeOffset.value = next;
-        // Occasionally rebuild fake name list
         if (Math.random() < 0.3) buildFakeUserList();
         setTimeout(tick, 5000 + Math.random() * 7000);
       };
@@ -1276,15 +1272,11 @@ createApp({
     };
     startFakeFluctuation();
 
-    // Toggle dropdown, close when clicking outside
     const toggleActiveUsersPopup = () => {
       activeUsersPopup.value = !activeUsersPopup.value;
     };
 
-    // Close dropdown on outside click
     const handleOutsideClick = () => { activeUsersPopup.value = false; };
-
-    // ══ END ACTIVE USERS ══
 
     const purchaseModal=ref({
       show:false,product:{},packages:[],selectedPkg:null,
@@ -1473,15 +1465,24 @@ createApp({
       });
     };
 
+    // ✅ আপডেট করা goLiveNav — লিংক থাকলে সরাসরি যাবে, না থাকলে live.html এ যাবে
     const goLiveNav=async()=>{
-      if(liveNavUrl.value){window.location.href=liveNavUrl.value;return;}
+      if(liveNavUrl.value){
+        window.location.href=liveNavUrl.value;
+        return;
+      }
       try{
         const s=await getDoc(doc(db,'settings','live'));
         const url=s.exists()?s.data().url||'':'';
         liveNavUrl.value=url;
-        if(url){window.location.href=url;}
-        else{showPopup('error','এখন লাইভ নেই','লাইভ শুরু হলে আমাদের সোশ্যাল মিডিয়ায় জানানো হবে।');}
-      }catch(e){showPopup('error','Error','লোড হয়নি, আবার চেষ্টা করুন।');}
+        if(url){
+          window.location.href=url;
+        }else{
+          window.location.href='live.html';
+        }
+      }catch(e){
+        window.location.href='live.html';
+      }
     };
 
     let toastTimer=null;
@@ -1860,7 +1861,7 @@ createApp({
             snap.forEach(d=>{
               const data=d.data();
               const lastSeen=data.lastSeen?.toMillis?.()|| 0;
-              if(now - lastSeen < 5 * 60 * 1000){ // active within 5 minutes
+              if(now - lastSeen < 5 * 60 * 1000){
                 actives.push({
                   uid: d.id,
                   name: data.name || data.displayName || 'User',
