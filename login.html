@@ -235,6 +235,8 @@ createApp({
     const nextPage = new URLSearchParams(window.location.search).get('next');
     const redirectAfterLogin = () => {
       if (nextPage === 'live') {
+        // live.html এ যাওয়ার আগে flag clear করো যাতে redirect loop না হয়
+        try { sessionStorage.removeItem('liveAuthAttempted'); } catch(e) {}
         window.location.href = 'live.html';
       } else {
         window.location.href = 'index.html';
