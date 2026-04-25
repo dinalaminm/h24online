@@ -302,15 +302,7 @@
 </head>
 <body>
 
-    <!-- ===== AUTH LOADING OVERLAY ===== -->
-    <div id="authOverlay" style="position:fixed;inset:0;background:rgba(0,0,10,0.97);display:flex;align-items:center;justify-content:center;z-index:99999;flex-direction:column;gap:16px;">
-        <div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.15);border-top-color:#ffff00;border-radius:50%;animation:authSpin 0.8s linear infinite;"></div>
-        <div style="font-size:14px;color:rgba(255,255,255,0.5);letter-spacing:1px;">অ্যাকাউন্ট যাচাই হচ্ছে...</div>
-        <style>
-            @keyframes authSpin { to { transform: rotate(360deg); } }
-            #authOverlay.hidden { display: none !important; }
-        </style>
-    </div>
+
 
     <!-- ===== WIN TOAST ===== -->
     <div id="winToast" style="position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-30px);background:linear-gradient(135deg,#064420,#0a6632);border:2px solid #00ff00;border-radius:18px;padding:18px 28px;z-index:99000;opacity:0;pointer-events:none;transition:all 0.45s cubic-bezier(0.175,0.885,0.32,1.275);text-align:center;min-width:250px;box-shadow:0 0 40px rgba(0,255,0,0.35);">
@@ -474,27 +466,25 @@ const h24Auth  = getAuth(h24App);
 const h24db    = getFirestore(h24App);
 
 // ══════════════════════════════════════════════════════
-// AUTH — overlay hide করো যত দ্রুত সম্ভব
+// AUTH — background এ চেক, page সাথে সাথে দেখাবে
 // ══════════════════════════════════════════════════════
-let currentUser     = null;
-let paidPrizeKeys   = new Set(); // double-credit থেকে বাঁচাতে
+let currentUser   = null;
+let paidPrizeKeys = new Set();
 
-await setPersistence(h24Auth, browserLocalPersistence).catch(() => {});
+// setPersistence background এ, await ছাড়া
+setPersistence(h24Auth, browserLocalPersistence).catch(() => {});
 
 onAuthStateChanged(h24Auth, (user) => {
     if (!user) {
-        // লগ ইন না থাকলে login page এ পাঠাও
         window.location.href = 'login.html';
         return;
     }
     currentUser = user;
-    // Auth confirm — সাথে সাথে overlay সরাও
-    document.getElementById('authOverlay').classList.add('hidden');
-    // Local paid keys load করো (page refresh এও safe থাকতে)
     try {
         const stored = localStorage.getItem(`paidKeys_${user.uid}`);
         if (stored) paidPrizeKeys = new Set(JSON.parse(stored));
     } catch(e) {}
+    startWinnerListener();
 });
 
 // ══════════════════════════════════════════════════════
@@ -611,10 +601,7 @@ function showWinToast(label, amount) {
     } catch(e) {}
 }
 
-// Auth হওয়ার পরেই winner listener শুরু করো
-onAuthStateChanged(h24Auth, (user) => {
-    if (user) startWinnerListener();
-});
+
 
 // ===== GAME STATE =====
 let calledNums      = [];
