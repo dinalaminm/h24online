@@ -231,11 +231,21 @@ createApp({
     let   pendingGoogleUid   = null;
 
     // ── লগইন থাকলে সরাসরি পাঠাও ──
+    // ?next parameter — login সফল হলে কোথায় যাবে
+    const nextPage = new URLSearchParams(window.location.search).get('next');
+    const redirectAfterLogin = () => {
+      if (nextPage === 'live') {
+        window.location.href = 'live.html';
+      } else {
+        window.location.href = 'index.html';
+      }
+    };
+
     onMounted(() => {
       onAuthStateChanged(auth, (user) => {
         if (user && !googlePhoneModal.value) {
           localStorage.setItem('userId', user.uid);
-          window.location.href = 'index.html';
+          redirectAfterLogin();
         }
       });
     });
@@ -282,7 +292,7 @@ createApp({
             isOnline: true
           }).catch(() => {});
           localStorage.setItem('userId', user.uid);
-          window.location.href = 'index.html';
+          redirectAfterLogin();
         }
 
       } catch(e) {
@@ -324,7 +334,7 @@ createApp({
         await updateDoc(doc(db, 'users', uid), { phone });
 
         googlePhoneModal.value = false;
-        window.location.href   = 'index.html';
+        redirectAfterLogin();
 
       } catch(e) {
         googlePhoneError.value = 'সমস্যা হয়েছে, আবার চেষ্টা করুন।';
@@ -338,7 +348,7 @@ createApp({
     // ══════════════════════════════════════
     const skipGooglePhone = () => {
       googlePhoneModal.value = false;
-      window.location.href   = 'index.html';
+      redirectAfterLogin();
     };
 
     // ══════════════════════════════════════
@@ -360,7 +370,7 @@ createApp({
           isOnline: true
         }).catch(() => {});
         localStorage.setItem('userId', result.user.uid);
-        window.location.href = 'index.html';
+        redirectAfterLogin();
       } catch(e) {
         errorMsg.value = '❌ ইমেইল বা পাসওয়ার্ড ভুল!';
       } finally {
