@@ -433,7 +433,7 @@ import { getDatabase, ref, onValue, set, get, update, child } from "https://www.
 // FIREBASE 2 — H24-ONLINE (Auth + Firestore wallet)
 // ══════════════════════════════════════════════════════
 import { initializeApp as initH24 }      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, browserLocalPersistence, setPersistence }
+import { getAuth, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, collection, addDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -466,49 +466,21 @@ const h24Auth  = getAuth(h24App);
 const h24db    = getFirestore(h24App);
 
 // ══════════════════════════════════════════════════════
-// AUTH — background এ চেক, page সাথে সাথে দেখাবে
+// AUTH — শুধু prize credit এর জন্য, কোনো redirect নেই
 // ══════════════════════════════════════════════════════
 let currentUser   = null;
 let paidPrizeKeys = new Set();
 
-// setPersistence — await ছাড়া background এ
-setPersistence(h24Auth, browserLocalPersistence).catch(() => {});
-
-// ── Auth check — redirect loop সম্পূর্ণ বন্ধ ──
-// কৌশল: login.html?next=live থেকে আসলে sessionStorage এ flag রাখা হয়।
-// live.html এ user=null আসলে flag চেক করি।
-// Flag থাকলে redirect করি না — user হয়তো slow network এ।
-
-const _liveAuthFlag = 'liveAuthAttempted';
-
-// login/register থেকে redirect হয়ে এলে flag set হবে
-// (login.html এ করা হয়েছে — নিচে দেখুন)
-
+// Background এ user detect করো — redirect নেই
 onAuthStateChanged(h24Auth, (user) => {
-    if (user) {
-        // Logged in — flag পরিষ্কার করো, game চালু করো
-        try { sessionStorage.removeItem(_liveAuthFlag); } catch(e) {}
-        currentUser = user;
-        localStorage.setItem('userId', user.uid);
-        try {
-            const stored = localStorage.getItem(`paidKeys_${user.uid}`);
-            if (stored) paidPrizeKeys = new Set(JSON.parse(stored));
-        } catch(e) {}
-        startWinnerListener();
-    } else {
-        // Not logged in
-        let attempted = false;
-        try { attempted = !!sessionStorage.getItem(_liveAuthFlag); } catch(e) {}
-
-        if (attempted) {
-            // login থেকে এসে এখনো null — loop এড়াতে redirect করবো না
-            // কিছু সেকেন্ড পরে আবার check হবে onAuthStateChanged এ
-            return;
-        }
-        // প্রথমবার — login এ পাঠাও, flag রাখো
-        try { sessionStorage.setItem(_liveAuthFlag, '1'); } catch(e) {}
-        window.location.replace('login.html?next=live');
-    }
+    if (!user) return; // login নেই — game দেখাবে, prize পাবে না
+    currentUser = user;
+    localStorage.setItem('userId', user.uid);
+    try {
+        const stored = localStorage.getItem(`paidKeys_${user.uid}`);
+        if (stored) paidPrizeKeys = new Set(JSON.parse(stored));
+    } catch(e) {}
+    startWinnerListener();
 });
 
 // ══════════════════════════════════════════════════════
