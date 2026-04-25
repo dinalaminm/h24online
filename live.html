@@ -435,7 +435,7 @@ import { getDatabase, ref, onValue, set, get, update, child } from "https://www.
 import { initializeApp as initH24 }      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, browserLocalPersistence, setPersistence }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp }
+import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, collection, addDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ── Game DB config ──
@@ -474,12 +474,28 @@ let paidPrizeKeys = new Set();
 // setPersistence background এ, await ছাড়া
 setPersistence(h24Auth, browserLocalPersistence).catch(() => {});
 
+// authResolved — Firebase auth initialize হওয়ার আগে redirect বন্ধ রাখতে
+let authResolved = false;
+
 onAuthStateChanged(h24Auth, (user) => {
+    authResolved = true;
     if (!user) {
-        window.location.href = 'login.html';
+        // localStorage এ userId থাকলে কিছুক্ষণ অপেক্ষা করো — হয়তো auth slow
+        const savedId = localStorage.getItem('userId');
+        if (savedId) {
+            // 2 সেকেন্ড পরে আবার check — slow network এর জন্য
+            setTimeout(() => {
+                if (!h24Auth.currentUser) {
+                    window.location.href = 'login.html';
+                }
+            }, 2000);
+        } else {
+            window.location.href = 'login.html';
+        }
         return;
     }
     currentUser = user;
+    localStorage.setItem('userId', user.uid);
     try {
         const stored = localStorage.getItem(`paidKeys_${user.uid}`);
         if (stored) paidPrizeKeys = new Set(JSON.parse(stored));
@@ -552,9 +568,10 @@ async function creditPrize(prizeKey, type, amount, roundNum) {
         await set(ref(database, `game/prizePaid/${safeKey}`), true);
 
         // 2️⃣ H24 Firestore wallet এ balance যোগ করো
-        await updateDoc(doc(h24db, 'users', currentUser.uid), {
+        // document না থাকলেও কাজ করবে (নতুন account)
+        await setDoc(doc(h24db, 'users', currentUser.uid), {
             balance: increment(amount)
-        });
+        }, { merge: true });
 
         // 3️⃣ Transaction history তে record করো
         await addDoc(collection(h24db, 'transactions'), {
