@@ -265,6 +265,7 @@ createApp({
     const nextPage = new URLSearchParams(window.location.search).get('next');
     const redirectAfterLogin = () => {
       if (nextPage === 'live') {
+        try { sessionStorage.removeItem('liveAuthAttempted'); } catch(e) {}
         window.location.href = 'live.html';
       } else {
         window.location.href = 'index.html';
