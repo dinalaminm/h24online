@@ -471,27 +471,18 @@ const h24db    = getFirestore(h24App);
 let currentUser   = null;
 let paidPrizeKeys = new Set();
 
-// setPersistence background এ, await ছাড়া
+// setPersistence — await ছাড়া background এ
 setPersistence(h24Auth, browserLocalPersistence).catch(() => {});
 
-// authResolved — Firebase auth initialize হওয়ার আগে redirect বন্ধ রাখতে
-let authResolved = false;
+let authChecked = false;
 
 onAuthStateChanged(h24Auth, (user) => {
-    authResolved = true;
+    if (authChecked) return; // একবারই চলবে
+    authChecked = true;
+
     if (!user) {
-        // localStorage এ userId থাকলে কিছুক্ষণ অপেক্ষা করো — হয়তো auth slow
-        const savedId = localStorage.getItem('userId');
-        if (savedId) {
-            // 2 সেকেন্ড পরে আবার check — slow network এর জন্য
-            setTimeout(() => {
-                if (!h24Auth.currentUser) {
-                    window.location.href = 'login.html';
-                }
-            }, 2000);
-        } else {
-            window.location.href = 'login.html';
-        }
+        // login পেজে পাঠাও, সফল হলে আবার live.html এ ফিরে আসবে
+        window.location.href = 'login.html?next=live';
         return;
     }
     currentUser = user;
