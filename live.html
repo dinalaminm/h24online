@@ -7,8 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
     
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=87p986X3"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <style>
         :root {
@@ -304,41 +302,24 @@
 </head>
 <body>
 
-
     <!-- ===== AUTH LOADING OVERLAY ===== -->
-    <div id="authOverlay" style="position:fixed;inset:0;background:rgba(0,0,10,0.95);display:flex;align-items:center;justify-content:center;z-index:99999;flex-direction:column;gap:16px;">
+    <div id="authOverlay" style="position:fixed;inset:0;background:rgba(0,0,10,0.97);display:flex;align-items:center;justify-content:center;z-index:99999;flex-direction:column;gap:16px;">
         <div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.15);border-top-color:#ffff00;border-radius:50%;animation:authSpin 0.8s linear infinite;"></div>
         <div style="font-size:14px;color:rgba(255,255,255,0.5);letter-spacing:1px;">অ্যাকাউন্ট যাচাই হচ্ছে...</div>
-        <style>@keyframes authSpin{to{transform:rotate(360deg)}}
-        #authOverlay.hidden{display:none!important}
-        #userHud{display:none;align-items:center;justify-content:space-between;gap:10px;background:rgba(0,0,0,0.8);border-bottom:1px solid rgba(255,255,0,0.2);padding:10px 14px;position:sticky;top:0;z-index:500;}
-        #userHud.show{display:flex!important}
+        <style>
+            @keyframes authSpin { to { transform: rotate(360deg); } }
+            #authOverlay.hidden { display: none !important; }
         </style>
     </div>
 
-    <!-- ===== USER HUD ===== -->
-    <div id="userHud">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <img id="hudAvatar" src="https://i.pravatar.cc/150?img=12" style="width:36px;height:36px;border-radius:50%;border:2px solid #ffff00;object-fit:cover;" alt="">
-            <div>
-                <div id="hudName" style="font-size:14px;font-weight:700;color:#fff;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
-                <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px;">লগড ইন</div>
-            </div>
-        </div>
-        <div style="background:rgba(255,255,0,0.12);border:1px solid rgba(255,255,0,0.35);border-radius:20px;padding:5px 14px;font-size:14px;font-weight:900;color:#ffff00;display:flex;align-items:center;gap:6px;">
-            <span style="width:7px;height:7px;background:#00ff00;border-radius:50%;display:inline-block;animation:hudPulse 1.5s infinite;"></span>
-            ৳<span id="hudBalance">0</span>
-            <style>@keyframes hudPulse{50%{opacity:0.4;transform:scale(1.4)}}</style>
-        </div>
-    </div>
-
     <!-- ===== WIN TOAST ===== -->
-    <div id="winToast" style="position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,#064420,#0a6632);border:2px solid #00ff00;border-radius:16px;padding:16px 26px;z-index:9000;opacity:0;pointer-events:none;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);text-align:center;min-width:240px;box-shadow:0 0 30px rgba(0,255,0,0.3);">
-        <span style="font-size:32px;margin-bottom:6px;display:block;">🏆</span>
-        <div style="font-size:16px;font-weight:900;color:#00ff00;">অভিনন্দন! আপনি জিতেছেন!</div>
-        <div id="winToastAmount" style="font-size:26px;font-weight:900;color:#fff;margin-top:4px;">+৳0</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;">ব্যালেন্সে যোগ হয়েছে</div>
-        <style>#winToast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important}</style>
+    <div id="winToast" style="position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-30px);background:linear-gradient(135deg,#064420,#0a6632);border:2px solid #00ff00;border-radius:18px;padding:18px 28px;z-index:99000;opacity:0;pointer-events:none;transition:all 0.45s cubic-bezier(0.175,0.885,0.32,1.275);text-align:center;min-width:250px;box-shadow:0 0 40px rgba(0,255,0,0.35);">
+        <div style="font-size:34px;margin-bottom:6px;">🏆</div>
+        <div style="font-size:16px;font-weight:900;color:#00ff00;letter-spacing:1px;">অভিনন্দন! আপনি জিতেছেন!</div>
+        <div id="winToastType" style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;letter-spacing:1px;"></div>
+        <div id="winToastAmount" style="font-size:30px;font-weight:900;color:#fff;margin-top:6px;">+৳0</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">ওয়ালেটে যোগ হয়েছে ✅</div>
+        <style>#winToast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important;pointer-events:auto!important;}</style>
     </div>
 
     <!-- BANNER -->
@@ -449,9 +430,24 @@
         </div>
     </div>
 
-<script>
-// ===== FIREBASE =====
-const firebaseConfig = {
+<script type="module">
+// ══════════════════════════════════════════════════════
+// FIREBASE 1 — GAME DATABASE (Realtime DB, compat style)
+// ══════════════════════════════════════════════════════
+import { initializeApp as initGame } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, set, get, update, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// ══════════════════════════════════════════════════════
+// FIREBASE 2 — H24-ONLINE (Auth + Firestore wallet)
+// ══════════════════════════════════════════════════════
+import { initializeApp as initH24 }      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, browserLocalPersistence, setPersistence }
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ── Game DB config ──
+const GAME_CONFIG = {
     apiKey: "AIzaSyD3WQJHDvRgWApZaNXW4Uyk5xrDj3LEQBQ",
     authDomain: "test-only-12cb4.firebaseapp.com",
     databaseURL: "https://test-only-12cb4-default-rtdb.firebaseio.com",
@@ -460,8 +456,165 @@ const firebaseConfig = {
     messagingSenderId: "117153640941",
     appId: "1:117153640941:web:19be2776f788e3bdb5b7e4"
 };
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+
+// ── H24 Wallet/Auth config ──
+const H24_CONFIG = {
+    apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
+    authDomain: "h24-online.firebaseapp.com",
+    projectId: "h24-online",
+    storageBucket: "h24-online.firebasestorage.app",
+    messagingSenderId: "808524719613",
+    appId: "1:808524719613:web:7f1abe9e70a346c3376594"
+};
+
+const gameApp  = initGame(GAME_CONFIG, 'game-db');
+const h24App   = initH24(H24_CONFIG,   'h24-wallet');
+const database = getDatabase(gameApp);
+const h24Auth  = getAuth(h24App);
+const h24db    = getFirestore(h24App);
+
+// ══════════════════════════════════════════════════════
+// AUTH — overlay hide করো যত দ্রুত সম্ভব
+// ══════════════════════════════════════════════════════
+let currentUser     = null;
+let paidPrizeKeys   = new Set(); // double-credit থেকে বাঁচাতে
+
+await setPersistence(h24Auth, browserLocalPersistence).catch(() => {});
+
+onAuthStateChanged(h24Auth, (user) => {
+    if (!user) {
+        // লগ ইন না থাকলে login page এ পাঠাও
+        window.location.href = 'login.html';
+        return;
+    }
+    currentUser = user;
+    // Auth confirm — সাথে সাথে overlay সরাও
+    document.getElementById('authOverlay').classList.add('hidden');
+    // Local paid keys load করো (page refresh এও safe থাকতে)
+    try {
+        const stored = localStorage.getItem(`paidKeys_${user.uid}`);
+        if (stored) paidPrizeKeys = new Set(JSON.parse(stored));
+    } catch(e) {}
+});
+
+// ══════════════════════════════════════════════════════
+// PRIZE — winner detect + wallet credit
+// ══════════════════════════════════════════════════════
+const PRIZE_LABELS = {
+    fullhouse:   'Full House',
+    earlyfive:   'Early Five',
+    topline:     'Top Line',
+    middleline:  'Middle Line',
+    bottomline:  'Bottom Line',
+    corner:      'Corner'
+};
+
+let winnerListenerActive = false;
+
+function startWinnerListener() {
+    if (winnerListenerActive) return;
+    winnerListenerActive = true;
+
+    onValue(ref(database, 'game'), async (snap) => {
+        const d = snap.val();
+        if (!d || !currentUser) return;
+
+        const roundNum = d.roundNum || 0;
+        const winners  = d.winners  || {};
+        const prizes   = d.prizes   || {}; // Admin দেওয়া prize amounts
+
+        for (const [type, winData] of Object.entries(winners)) {
+            if (!winData || !winData.uid) continue;
+
+            // এই user এর জন্য winner কিনা check করো
+            if (winData.uid !== currentUser.uid) continue;
+
+            // prize amount — Firebase prizes/{type} থেকে, না থাকলে 0
+            const amount = prizes[type] || winData.prizeAmount || 0;
+            if (amount <= 0) continue;
+
+            // Unique key — রাউন্ড + type + uid মিলিয়ে
+            const prizeKey = `${roundNum}_${type}_${currentUser.uid}`;
+            if (paidPrizeKeys.has(prizeKey)) continue; // ইতিমধ্যে দেওয়া হয়েছে
+
+            // Game DB তে paid flag চেক করো
+            try {
+                const paidSnap = await get(ref(database, `game/prizePaid/${prizeKey.replace(/\./g,'_')}`));
+                if (paidSnap.exists() && paidSnap.val() === true) {
+                    paidPrizeKeys.add(prizeKey);
+                    savePaidKeys();
+                    continue;
+                }
+            } catch(e) {}
+
+            // ✅ Prize দাও
+            await creditPrize(prizeKey, type, amount, roundNum);
+        }
+    });
+}
+
+async function creditPrize(prizeKey, type, amount, roundNum) {
+    if (!currentUser) return;
+    const safeKey = prizeKey.replace(/\./g, '_');
+
+    try {
+        // 1️⃣ Game DB তে paid flag সেট করো (race condition থেকে বাঁচাতে)
+        await set(ref(database, `game/prizePaid/${safeKey}`), true);
+
+        // 2️⃣ H24 Firestore wallet এ balance যোগ করো
+        await updateDoc(doc(h24db, 'users', currentUser.uid), {
+            balance: increment(amount)
+        });
+
+        // 3️⃣ Transaction history তে record করো
+        await addDoc(collection(h24db, 'transactions'), {
+            uid:       currentUser.uid,
+            type:      'prize',
+            amount:    amount,
+            label:     `Tambola Prize — ${PRIZE_LABELS[type] || type} (Round #${roundNum})`,
+            roundNum:  roundNum,
+            prizeType: type,
+            createdAt: serverTimestamp()
+        });
+
+        // 4️⃣ Local set এ রাখো
+        paidPrizeKeys.add(prizeKey);
+        savePaidKeys();
+
+        // 5️⃣ Win toast দেখাও
+        showWinToast(PRIZE_LABELS[type] || type, amount);
+
+    } catch(e) {
+        console.error('Prize credit error:', e);
+    }
+}
+
+function savePaidKeys() {
+    if (!currentUser) return;
+    try {
+        localStorage.setItem(`paidKeys_${currentUser.uid}`, JSON.stringify([...paidPrizeKeys]));
+    } catch(e) {}
+}
+
+function showWinToast(label, amount) {
+    const toast = document.getElementById('winToast');
+    document.getElementById('winToastType').textContent  = label.toUpperCase();
+    document.getElementById('winToastAmount').textContent = `+৳${amount}`;
+    toast.classList.add('show');
+    // 6 সেকেন্ড পরে hide
+    setTimeout(() => toast.classList.remove('show'), 6000);
+    // Voice announcement
+    try {
+        if (typeof responsiveVoice !== 'undefined') {
+            responsiveVoice.speak(`Congratulations! You won ${amount} taka for ${label}`, 'UK English Female');
+        }
+    } catch(e) {}
+}
+
+// Auth হওয়ার পরেই winner listener শুরু করো
+onAuthStateChanged(h24Auth, (user) => {
+    if (user) startWinnerListener();
+});
 
 // ===== GAME STATE =====
 let calledNums      = [];
@@ -474,13 +627,13 @@ let gameStatus      = 'WAITING';
 let numberPool      = [];
 
 // ===== WEBRTC STATE =====
-let myViewerId  = null;
-let peerConn    = null;
-let isJoined    = false;
-let hostIsLive  = false;
-let iceQueue    = [];
-let offerListenerRef  = null;
-let iceListenerRef    = null;
+let myViewerId        = null;
+let peerConn          = null;
+let isJoined          = false;
+let hostIsLive        = false;
+let iceQueue          = [];
+let offerUnsubscribe  = null;
+let iceUnsubscribe    = null;
 
 const ICE_SERVERS = {
     iceServers: [
@@ -507,18 +660,18 @@ for (let i = 1; i <= 90; i++) {
     boardEl.innerHTML += `<div class="cell" id="c-${i}">${i}</div>`;
 }
 
-// ===== UNMUTE VIDEO (user interaction দিয়ে sound চালু) =====
-function unmuteVideo() {
+// ===== UNMUTE VIDEO =====
+window.unmuteVideo = function() {
     const video = document.getElementById('liveVideo');
-    video.muted = false;
+    video.muted  = false;
     video.volume = 1.0;
     document.getElementById('unmuteBar').style.display = 'none';
-}
+};
 
 // ===== WATCH HOST STATUS =====
-database.ref('webrtc/hostStatus').on('value', snap => {
+onValue(ref(database, 'webrtc/hostStatus'), snap => {
     const data = snap.val();
-    hostIsLive = data && data.live === true;
+    hostIsLive  = data && data.live === true;
 
     if (hostIsLive) {
         document.getElementById('liveStreamBox').style.display = 'block';
@@ -526,8 +679,6 @@ database.ref('webrtc/hostStatus').on('value', snap => {
         document.getElementById('liveStreamBox').classList.remove('offline');
         document.getElementById('streamQuality').textContent = 'Live Available';
         document.getElementById('qualityDot').className = 'quality-dot ok';
-
-        // autoMode OFF হলে stream বড় করো (board নেই, তাই full view)
         const liveBox = document.getElementById('liveStreamBox');
         if (!autoModeOn) {
             liveBox.style.margin = '0 10px';
@@ -536,10 +687,7 @@ database.ref('webrtc/hostStatus').on('value', snap => {
             liveBox.style.margin = '';
             liveBox.style.borderRadius = '';
         }
-
-        if (!isJoined) {
-            setTimeout(() => joinLive(), 800);
-        }
+        if (!isJoined) setTimeout(() => joinLive(), 800);
     } else {
         document.getElementById('liveStreamBox').style.display = 'none';
         hostIsLive = false;
@@ -548,20 +696,18 @@ database.ref('webrtc/hostStatus').on('value', snap => {
     }
 });
 
+// ===== HANDRISE PANEL SHOW/HIDE =====
+onValue(ref(database, 'webrtc/hostStatus'), snap => {
+    const d    = snap.val();
+    const live = d && d.live === true;
+    document.getElementById('handriseSection').style.display = live ? 'block' : 'none';
+});
+
 // ===== CLEANUP PEER =====
 function cleanupPeer() {
-    if (offerListenerRef) {
-        database.ref(`webrtc/offers/${myViewerId}`).off('value', offerListenerRef);
-        offerListenerRef = null;
-    }
-    if (iceListenerRef) {
-        database.ref(`webrtc/offers/${myViewerId}/ice`).off('child_added', iceListenerRef);
-        iceListenerRef = null;
-    }
-    if (peerConn) {
-        peerConn.close();
-        peerConn = null;
-    }
+    if (offerUnsubscribe)  { offerUnsubscribe();  offerUnsubscribe  = null; }
+    if (iceUnsubscribe)    { iceUnsubscribe();    iceUnsubscribe    = null; }
+    if (peerConn)          { peerConn.close();    peerConn          = null; }
     iceQueue = [];
     isJoined = false;
 }
@@ -569,56 +715,44 @@ function cleanupPeer() {
 // ===== JOIN LIVE =====
 async function joinLive() {
     if (isJoined || !hostIsLive) return;
-
-    // আগের connection পরিষ্কার করুন
     cleanupPeer();
 
-    document.getElementById('offlineTxt').style.display = 'none';
-    document.getElementById('joinLiveBtn').style.display = 'none';
+    document.getElementById('offlineTxt').style.display   = 'none';
+    document.getElementById('joinLiveBtn').style.display  = 'none';
     document.getElementById('connectingTxt').style.display = 'block';
-    document.getElementById('unmuteBar').style.display = 'none';
+    document.getElementById('unmuteBar').style.display    = 'none';
 
     peerConn = new RTCPeerConnection(ICE_SERVERS);
 
-    // ===== TRACK EVENT — video stream পেলে show করো =====
     peerConn.ontrack = e => {
         const video = document.getElementById('liveVideo');
         if (video.srcObject !== e.streams[0]) {
             video.srcObject = e.streams[0];
-            // প্রথমে muted দিয়ে play — browser policy
             video.muted = true;
             video.play().then(() => {
-                // Play সফল হলে unmute button দেখাও
                 document.getElementById('unmuteBar').style.display = 'block';
-            }).catch(err => {
-                console.warn('Autoplay blocked:', err);
-            });
+            }).catch(err => console.warn('Autoplay blocked:', err));
         }
         document.getElementById('offlineOverlay').classList.add('hidden');
         document.getElementById('liveBadge').classList.add('show');
         document.getElementById('connectingTxt').style.display = 'none';
-        document.getElementById('streamQuality').textContent = 'HD Live';
-        document.getElementById('qualityDot').className = 'quality-dot good';
+        document.getElementById('streamQuality').textContent   = 'HD Live';
+        document.getElementById('qualityDot').className        = 'quality-dot good';
     };
 
-    // ===== OUR ICE CANDIDATES → ADMIN এ পাঠাও =====
     peerConn.onicecandidate = async e => {
         if (e.candidate) {
             try {
-                await database.ref(`webrtc/viewers/${myViewerId}`).update({
-                    type: 'ice',
-                    candidate: e.candidate.toJSON()
+                await update(ref(database, `webrtc/viewers/${myViewerId}`), {
+                    type: 'ice', candidate: e.candidate.toJSON()
                 });
             } catch(err) { console.warn('ICE send error:', err); }
         }
     };
 
-    // ===== CONNECTION STATE CHANGE =====
     peerConn.onconnectionstatechange = () => {
         if (!peerConn) return;
         const state = peerConn.connectionState;
-        console.log('Connection state:', state);
-
         if (state === 'connected') {
             isJoined = true;
             document.getElementById('connectingTxt').style.display = 'none';
@@ -626,81 +760,52 @@ async function joinLive() {
             isJoined = false;
             document.getElementById('unmuteBar').style.display = 'none';
             setStreamOffline('সংযোগ বিচ্ছিন্ন — পুনরায় চেষ্টা হচ্ছে...');
-            if (hostIsLive) {
-                setTimeout(() => joinLive(), 3000);
-            }
+            if (hostIsLive) setTimeout(() => joinLive(), 3000);
         }
     };
 
-    // ===== FIREBASE এ JOIN REGISTER করো =====
     try {
-        await database.ref(`webrtc/viewers/${myViewerId}`).set({
-            type: 'join',
-            joinedAt: Date.now()
+        await set(ref(database, `webrtc/viewers/${myViewerId}`), {
+            type: 'join', joinedAt: Date.now()
         });
     } catch(err) {
         console.error('Register error:', err);
         return;
     }
 
-    // ===== ADMIN এর OFFER LISTEN করো =====
-    offerListenerRef = async snap => {
+    // ===== OFFER LISTENER =====
+    offerUnsubscribe = onValue(ref(database, `webrtc/offers/${myViewerId}`), async snap => {
         const data = snap.val();
-        if (!data || data.type !== 'offer') return;
-        if (!peerConn) return;
-
-        // শুধুমাত্র stable state-এ offer process করো
-        if (peerConn.signalingState !== 'stable') {
-            console.warn('Not stable, skipping offer. State:', peerConn.signalingState);
-            return;
-        }
-
+        if (!data || data.type !== 'offer' || !peerConn) return;
+        if (peerConn.signalingState !== 'stable') return;
         try {
-            // Remote description সেট করো
             await peerConn.setRemoteDescription(new RTCSessionDescription(data.sdp));
-
-            // Remote description সেট হওয়ার পর queue করা ICE candidates যোগ করো
             for (const ice of iceQueue) {
-                try {
-                    await peerConn.addIceCandidate(new RTCIceCandidate(ice));
-                } catch(e) { console.warn('Queued ICE error:', e); }
+                try { await peerConn.addIceCandidate(new RTCIceCandidate(ice)); } catch(e) {}
             }
             iceQueue = [];
-
-            // Answer তৈরি করো
             const answer = await peerConn.createAnswer();
             await peerConn.setLocalDescription(answer);
-
-            // Answer admin-এ পাঠাও
-            await database.ref(`webrtc/viewers/${myViewerId}`).set({
-                type: 'answer',
-                sdp: { type: answer.type, sdp: answer.sdp }
+            await set(ref(database, `webrtc/viewers/${myViewerId}`), {
+                type: 'answer', sdp: { type: answer.type, sdp: answer.sdp }
             });
+        } catch(e) { console.error('Offer/Answer error:', e); }
+    });
 
-            console.log('Answer sent successfully');
-        } catch(e) {
-            console.error('Offer/Answer error:', e);
-        }
-    };
-    database.ref(`webrtc/offers/${myViewerId}`).on('value', offerListenerRef);
-
-    // ===== ADMIN এর ICE CANDIDATES LISTEN করো =====
-    iceListenerRef = async snap => {
+    // ===== ICE LISTENER =====
+    iceUnsubscribe = onValue(ref(database, `webrtc/offers/${myViewerId}/ice`), async snap => {
         const data = snap.val();
-        if (!data || !data.candidate) return;
-        if (!peerConn) return;
-
-        if (peerConn.remoteDescription && peerConn.remoteDescription.type) {
-            // Remote description আছে — সরাসরি যোগ করো
-            try {
-                await peerConn.addIceCandidate(new RTCIceCandidate(data.candidate));
-            } catch(e) { console.warn('ICE add error:', e); }
-        } else {
-            // Remote description নেই — queue করো
-            iceQueue.push(data.candidate);
+        if (!data || !peerConn) return;
+        // child values
+        const candidates = Object.values(data).filter(v => v && v.candidate);
+        for (const c of candidates) {
+            if (peerConn.remoteDescription && peerConn.remoteDescription.type) {
+                try { await peerConn.addIceCandidate(new RTCIceCandidate(c.candidate)); } catch(e) {}
+            } else {
+                iceQueue.push(c.candidate);
+            }
         }
-    };
-    database.ref(`webrtc/offers/${myViewerId}/ice`).on('child_added', iceListenerRef);
+    });
 }
 
 // ===== SET OFFLINE STATE =====
@@ -711,39 +816,30 @@ function setStreamOffline(msg) {
         video.srcObject = null;
     }
     document.getElementById('offlineOverlay').classList.remove('hidden');
-    document.getElementById('offlineTxt').style.display = 'block';
-    document.getElementById('offlineTxt').textContent = msg || 'LIVE STREAM অফলাইন';
-    document.getElementById('joinLiveBtn').style.display = hostIsLive ? 'block' : 'none';
+    document.getElementById('offlineTxt').style.display   = 'block';
+    document.getElementById('offlineTxt').textContent     = msg || 'LIVE STREAM অফলাইন';
+    document.getElementById('joinLiveBtn').style.display  = hostIsLive ? 'block' : 'none';
     document.getElementById('connectingTxt').style.display = 'none';
-    document.getElementById('unmuteBar').style.display = 'none';
+    document.getElementById('unmuteBar').style.display    = 'none';
     document.getElementById('liveBadge').classList.remove('show');
     document.getElementById('liveStreamBox').classList.add('offline');
-    document.getElementById('streamQuality').textContent = 'Offline';
-    document.getElementById('qualityDot').className = 'quality-dot';
+    document.getElementById('streamQuality').textContent  = 'Offline';
+    document.getElementById('qualityDot').className       = 'quality-dot';
 }
-
-// ===== SHOW/HIDE INTERACTION PANELS =====
-database.ref('webrtc/hostStatus').on('value', snap => {
-    const d = snap.val();
-    const live = d && d.live === true;
-    document.getElementById('handriseSection').style.display = live ? 'block' : 'none';
-});
 
 // ===== HANDRISE =====
 let hrSentThisRound = false;
-let hrLastRoundNum = 0;
+let hrLastRoundNum  = 0;
 
-// রাউন্ড বদলালে handrise lock রিসেট করো
-database.ref('game/roundNum').on('value', snap => {
+onValue(ref(database, 'game/roundNum'), snap => {
     const rn = snap.val() || 0;
     if (rn !== hrLastRoundNum) {
-        hrLastRoundNum = rn;
+        hrLastRoundNum  = rn;
         hrSentThisRound = false;
         document.querySelectorAll('.hr-btn').forEach(b => b.disabled = false);
         const nameInput = document.getElementById('hrNameInput');
         if (nameInput) {
             nameInput.disabled = false;
-            // আগের নাম মনে রাখো
             try { nameInput.value = localStorage.getItem('hr_userName') || ''; } catch(e) {}
         }
         const notice = document.getElementById('hrRoundNotice');
@@ -751,7 +847,6 @@ database.ref('game/roundNum').on('value', snap => {
     }
 });
 
-// পেজ লোডে আগের নাম ফিলআপ করো
 window.addEventListener('DOMContentLoaded', () => {
     try {
         const saved = localStorage.getItem('hr_userName');
@@ -759,11 +854,10 @@ window.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
 });
 
-function sendHandrise(emoji) {
+window.sendHandrise = function(emoji) {
     if (hrSentThisRound) return;
-
     const nameInput = document.getElementById('hrNameInput');
-    const userName = nameInput ? nameInput.value.trim() : '';
+    const userName  = nameInput ? nameInput.value.trim() : '';
     if (!userName) {
         nameInput.style.borderColor = 'rgba(255,0,0,0.7)';
         nameInput.placeholder = '⚠️ নাম দিন...';
@@ -773,63 +867,41 @@ function sendHandrise(emoji) {
         }, 2000);
         return;
     }
-    // নাম মনে রাখো পরের বার এর জন্য
     try { localStorage.setItem('hr_userName', userName); } catch(e) {}
-
     hrSentThisRound = true;
-
     const id = 'hr_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
-    database.ref('interactions/handrise/' + id).set({
-        emoji: emoji,
-        name: userName,
-        time: Date.now(),
-        roundNum: hrLastRoundNum
+    set(ref(database, 'interactions/handrise/' + id), {
+        emoji: emoji, name: userName, time: Date.now(), roundNum: hrLastRoundNum
     });
-
-    // সব বাটন disable করো
     document.querySelectorAll('.hr-btn').forEach(b => b.disabled = true);
     if (nameInput) nameInput.disabled = true;
-
     const msg = document.getElementById('hrSentMsg');
-    msg.textContent = emoji + ' পাঠানো হয়েছে!';
+    msg.textContent  = emoji + ' পাঠানো হয়েছে!';
     msg.style.display = 'block';
     setTimeout(() => { msg.style.display = 'none'; }, 3000);
-
     const notice = document.getElementById('hrRoundNotice');
     if (notice) notice.style.display = 'block';
-}
+};
 
 // ===== CLEANUP ON UNLOAD =====
 window.addEventListener('beforeunload', () => {
     cleanupPeer();
     if (myViewerId) {
-        database.ref(`webrtc/viewers/${myViewerId}`).remove();
-        database.ref(`webrtc/offers/${myViewerId}`).remove();
+        set(ref(database, `webrtc/viewers/${myViewerId}`), null);
+        set(ref(database, `webrtc/offers/${myViewerId}`), null);
     }
 });
 
-// ===== AUTO MODE → BOARD SHOW/HIDE =====
+// ===== AUTO MODE =====
 let autoModeOn = false;
 
 function updateLayout() {
-    const gameSection   = document.getElementById('gameSection');
-    const liveStreamBox = document.getElementById('liveStreamBox');
-
-    if (autoModeOn) {
-        // Auto round চালু — board সবসময় দেখাবে
-        gameSection.style.display = 'block';
-        // Live এর visibility hostStatus listener handle করে
-    } else {
-        // Auto round বন্ধ — board লুকাবে
-        gameSection.style.display = 'none';
-        // Live চললে stream দেখাবে (hostStatus listener handle করে)
-    }
+    document.getElementById('gameSection').style.display = autoModeOn ? 'block' : 'none';
 }
 
-database.ref('game/autoMode').on('value', snap => {
+onValue(ref(database, 'game/autoMode'), snap => {
     autoModeOn = snap.val() === true;
     updateLayout();
-    // live চলছে থাকলে stream size ও আপডেট করো
     if (hostIsLive) {
         const liveBox = document.getElementById('liveStreamBox');
         if (!autoModeOn) {
@@ -843,14 +915,13 @@ database.ref('game/autoMode').on('value', snap => {
 });
 
 // ===== FIREBASE GAME LISTENER =====
-database.ref('game').on('value', snap => {
+onValue(ref(database, 'game'), snap => {
     const d = snap.val();
     if (!d) return;
 
     const newNums      = Array.isArray(d.calledNumbers) ? d.calledNumbers : [];
     const newRoundNum  = d.roundNum       || 0;
     const newRoundTime = d.roundStartTime || 0;
-    const prevWinnersJSON = JSON.stringify(winners);
     winners            = d.winners        || {};
     gameStatus         = d.status         || 'WAITING';
     numberPool         = Array.isArray(d.numberPool) ? d.numberPool : [];
@@ -870,13 +941,6 @@ database.ref('game').on('value', snap => {
         lastBall = latest;
         speak(latest);
         setTimeout(() => triggerBubble(latest), 400);
-    }
-
-    // ✅ Winner check — prize credit
-    if (JSON.stringify(d.winners || {}) !== prevWinnersJSON && Object.keys(d.winners || {}).length > 0) {
-        if (typeof window._checkUserWin === 'function') {
-            window._checkUserWin(d.winners, newRoundNum);
-        }
     }
 
     prevCalledNums = [...newNums];
@@ -904,7 +968,7 @@ function updateUI() {
     rb.innerHTML = '';
     [...calledNums].reverse().slice(0, 10).forEach(num => {
         const ball = document.createElement('div');
-        ball.className = 'ball';
+        ball.className  = 'ball';
         ball.textContent = num;
         rb.appendChild(ball);
     });
@@ -917,7 +981,7 @@ function triggerBubble(num) {
     if (!targetCell) return;
     const rect   = targetCell.getBoundingClientRect();
     const bubble = document.createElement('div');
-    bubble.className = 'smooth-bubble';
+    bubble.className  = 'smooth-bubble';
     bubble.textContent = num;
     bubble.style.top  = (rect.top  + window.scrollY + rect.height / 2 - 24) + 'px';
     bubble.style.left = (rect.left + window.scrollX + rect.width  / 2 - 24) + 'px';
@@ -936,7 +1000,6 @@ function renderDivs() {
         cont.innerHTML += `
             <div class="div-item">
                 <div style="font-size:20px;font-weight:bold;color:#fff;">${name}</div>
-                <div style="font-size:12px;color:var(--accent-yellow);margin-top:2px;">Prize: ৳${{'fullhouse':500,'earlyfive':100,'topline':150,'middleline':150,'bottomline':150,'corner':100}[key]||0}</div>
                 ${w ? `<div style="color:#00ff00;font-weight:bold;font-size:14px;margin-top:4px;">TNO: ${w.tno} &nbsp;|&nbsp; Seat: ${w.seat}</div>` : ''}
                 <button class="view-btn" onclick="showModal('${key}')">VIEW</button>
             </div>`;
@@ -960,14 +1023,14 @@ function speak(num) {
 }
 
 // ===== MODAL =====
-function showModal(key) {
+window.showModal = function(key) {
     const w = winners[key];
     document.getElementById('modalContent').innerHTML = w
         ? `<h2 style="color:#fff;text-align:center;margin:10px 0;">WINNER<br>TNO: ${w.tno}<br>Seat: ${w.seat}</h2>`
         : `<h2 style="color:#fff;text-align:center;margin:30px 0;">No Winner Yet</h2>`;
     document.getElementById('modalOverlay').classList.add('active');
-}
-function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+};
+window.closeModal = function() { document.getElementById('modalOverlay').classList.remove('active'); };
 
 // ===== TIMER & PHASE TICK =====
 function pad(n) { return String(n).padStart(2, '0'); }
@@ -1004,29 +1067,29 @@ function tick() {
     if (phase === 'waiting') {
         const t = msToHMS(WAIT_END - elapsed);
         setBoxes(t.h, t.m, t.s);
-        statusEl.className = 'wait';
+        statusEl.className   = 'wait';
         statusEl.textContent = 'NEXT ROUND LOADING...';
     } else if (phase === 'countdown') {
         const t = msToHMS(CYCLE - elapsed);
         setBoxes(t.h, t.m, t.s);
-        statusEl.className = 'wait';
+        statusEl.className   = 'wait';
         statusEl.textContent = `⏳ STARTING IN ${pad(t.m)}:${pad(t.s)}`;
     } else if (phase === 'live') {
         const elapsed2 = roundStartTime > 0 ? now - roundStartTime : 0;
         const t = msToHMS(elapsed2);
         setBoxes(t.h, t.m, t.s);
-        statusEl.className = 'live';
+        statusEl.className   = 'live';
         statusEl.textContent = 'GAME IS LIVE';
     } else if (phase === 'winner') {
         const t = msToHMS(roundStartTime + GAME_DUR + WINNER_DUR - now);
         setBoxes(t.h, t.m, t.s);
-        statusEl.className = 'winner';
+        statusEl.className   = 'winner';
         statusEl.textContent = 'WINNER CHECK TIME';
         bannerEl.classList.add('show');
         bannerEl.textContent = `🏆 WINNER CHECK! বাকি: ${pad(t.m)}:${pad(t.s)}`;
     } else if (phase === 'over') {
         setBoxes(0, 0, 0);
-        statusEl.className = 'over';
+        statusEl.className   = 'over';
         statusEl.textContent = 'GAME IS OVER';
     }
 }
@@ -1040,148 +1103,5 @@ function setBoxes(h, m, s) {
 setInterval(tick, 1000);
 tick();
 </script>
-
-<script type="module">
-// ══════════════════════════════════════════════
-// H24 ONLINE Firebase (Auth + Wallet — Firestore)
-// ══════════════════════════════════════════════
-import { initializeApp as initH24 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-    getAuth, onAuthStateChanged, browserLocalPersistence, setPersistence
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-    getFirestore, doc, getDoc, updateDoc, increment, addDoc,
-    collection, serverTimestamp, onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const H24_CONFIG = {
-    apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
-    authDomain: "h24-online.firebaseapp.com",
-    projectId: "h24-online",
-    storageBucket: "h24-online.firebasestorage.app",
-    messagingSenderId: "808524719613",
-    appId: "1:808524719613:web:7f1abe9e70a346c3376594"
-};
-
-const h24App  = initH24(H24_CONFIG, 'h24-online-auth');
-const h24Auth = getAuth(h24App);
-const h24db   = getFirestore(h24App);
-
-await setPersistence(h24Auth, browserLocalPersistence).catch(() => {});
-
-let currentUser = null;
-let currentUserData = null;
-
-// Prize amounts per dividend type
-const PRIZE_TABLE = {
-    fullhouse: 500, earlyfive: 100,
-    topline: 150, middleline: 150, bottomline: 150, corner: 100
-};
-
-let paidPrizesThisRound = new Set();
-let currentTrackedRound = 0;
-
-// ── Auth check ──
-onAuthStateChanged(h24Auth, async (user) => {
-    if (!user) {
-        window.location.href = 'login.html';
-        return;
-    }
-    currentUser = user;
-    localStorage.setItem('userId', user.uid);
-
-    // ✅ Auth confirm হওয়ার সাথে সাথেই overlay hide করো — Firestore এর জন্য অপেক্ষা করবে না
-    currentUserData = { name: user.displayName || 'User', balance: 0, photoURL: user.photoURL || '' };
-    updateHud();
-    document.getElementById('authOverlay').classList.add('hidden');
-    document.getElementById('userHud').classList.add('show');
-
-    // Background এ Firestore থেকে full data load করো
-    try {
-        const snap = await getDoc(doc(h24db, 'users', user.uid));
-        if (snap.exists()) {
-            currentUserData = snap.data();
-            updateHud();
-        }
-    } catch(e) {}
-
-    // Real-time balance listener
-    onSnapshot(doc(h24db, 'users', user.uid), (d) => {
-        if (d.exists()) {
-            currentUserData = { ...currentUserData, ...d.data() };
-            updateHud();
-        }
-    });
-
-    // Auto-fill handrise name
-    try {
-        const saved = localStorage.getItem('hr_userName') || currentUserData.name || '';
-        if (saved && document.getElementById('hrNameInput')) document.getElementById('hrNameInput').value = saved;
-    } catch(e) {}
-});
-
-function updateHud() {
-    if (!currentUserData) return;
-    document.getElementById('hudName').textContent    = currentUserData.name || 'User';
-    document.getElementById('hudBalance').textContent = Math.floor(currentUserData.balance || 0);
-    document.getElementById('hudAvatar').src = currentUserData.photoURL || 'https://i.pravatar.cc/150?img=12';
-}
-
-// ── Credit prize to winner's wallet ──
-async function creditWinPrize(prizeKey, prizeAmount) {
-    if (!currentUser) return;
-    if (paidPrizesThisRound.has(prizeKey)) return;
-    paidPrizesThisRound.add(prizeKey);
-    try {
-        await updateDoc(doc(h24db, 'users', currentUser.uid), { balance: increment(prizeAmount) });
-        await addDoc(collection(h24db, 'balanceLogs'), {
-            userId: currentUser.uid, type: 'game_win', amount: prizeAmount,
-            note: `Tambola Win - ${prizeKey} (Round ${currentTrackedRound})`,
-            roundNum: currentTrackedRound, createdAt: serverTimestamp()
-        });
-        showWinToast(prizeAmount);
-    } catch(e) {
-        console.error('Prize credit failed:', e);
-        paidPrizesThisRound.delete(prizeKey);
-    }
-}
-
-function showWinToast(amount) {
-    const toast = document.getElementById('winToast');
-    document.getElementById('winToastAmount').textContent = '+৳' + amount;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 5500);
-}
-
-// ── Check if current user is the winner ──
-function checkIfUserWon(winners, newRound) {
-    if (!currentUser || !currentUserData) return;
-    if (newRound !== currentTrackedRound) {
-        paidPrizesThisRound.clear();
-        currentTrackedRound = newRound;
-    }
-    const userTno   = currentUserData.referralCode || currentUser.uid.substring(0, 8);
-    const userPhone = currentUserData.phone || '';
-
-    Object.entries(winners).forEach(([key, winData]) => {
-        if (!winData || !winData.tno) return;
-        if (paidPrizesThisRound.has(key)) return;
-        const prizeAmount = PRIZE_TABLE[key] || 0;
-        if (prizeAmount <= 0) return;
-
-        const winTno = String(winData.tno || '').toLowerCase().trim();
-        const isMatch =
-            winTno === userTno.toLowerCase() ||
-            winTno === userPhone ||
-            winTno === currentUser.uid.toLowerCase() ||
-            (winData.userId && winData.userId === currentUser.uid);
-
-        if (isMatch) creditWinPrize(key, prizeAmount);
-    });
-}
-
-window._checkUserWin = checkIfUserWon;
-</script>
-
 </body>
 </html>
