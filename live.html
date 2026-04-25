@@ -1,190 +1,1184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
-<title>Live — H24 ONLINE</title>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
-<style>
-  .no-live-popup-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 9999; padding: 24px; backdrop-filter: blur(6px);
-    animation: fadeIn 0.2s ease;
-  }
-  .no-live-popup {
-    background: #1a1a2e; border: 1px solid rgba(239,68,68,0.3);
-    border-radius: 24px; padding: 36px 24px; text-align: center;
-    max-width: 320px; width: 100%;
-    animation: slideUp 0.25s ease;
-  }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H24ONLINE - Live Tambola</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=87p986X3"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --accent-yellow: #ffff00;
+            --accent-red: #ff0000;
+            --accent-pink: #c2185b;
+            --accent-orange: #ff6a00;
+            --accent-green: #00ff00;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+
+        body {
+            background: url('http://starttambola.com/publish/themeStore/db/100008/img/bg.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            text-align: center;
+            overflow-x: hidden;
+            padding-bottom: 30px;
+        }
+
+        /* ===== BANNER ===== */
+        .header-banner { width: 100%; position: relative; }
+        .banner-img { width: 100%; max-height: 200px; object-fit: cover; }
+        .banner-text-overlay {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            color: #fff; font-size: 26px; font-weight: 900; letter-spacing: 1.5px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.8); text-transform: uppercase;
+        }
+
+        /* ===== LIVE STREAM AREA ===== */
+        .live-stream-container {
+            margin: 0 10px 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+            border: 2px solid rgba(255,0,0,0.5);
+            box-shadow: 0 0 20px rgba(255,0,0,0.2);
+        }
+
+        .live-stream-container.offline {
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: none;
+        }
+
+        #liveVideo {
+            width: 100%;
+            aspect-ratio: 16/9;
+            display: block;
+            background: #000;
+            object-fit: cover;
+        }
+
+        /* LIVE badge overlay */
+        .live-badge-overlay {
+            position: absolute;
+            top: 10px; left: 10px;
+            background: var(--accent-red);
+            color: #fff;
+            font-size: 11px; font-weight: 900;
+            padding: 3px 10px; border-radius: 4px;
+            letter-spacing: 2px;
+            display: none;
+            animation: blink 1.2s infinite;
+        }
+        .live-badge-overlay.show { display: block; }
+
+        /* Unmute button */
+        #unmuteBar {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+        #unmuteBar button {
+            background: rgba(255,0,0,0.9);
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            letter-spacing: 1px;
+            animation: blink 1.5s infinite;
+            white-space: nowrap;
+        }
+
+        /* Offline / waiting overlay */
+        .stream-offline-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 8px;
+        }
+        .stream-offline-overlay.hidden { display: none; }
+
+        .stream-offline-icon {
+            width: 48px; height: 48px; opacity: 0.4;
+        }
+        .stream-offline-txt {
+            font-size: 13px; color: rgba(255,255,255,0.4);
+            letter-spacing: 1px; font-weight: 700;
+        }
+        .stream-connecting-txt {
+            font-size: 12px; color: var(--accent-orange);
+            letter-spacing: 1px; font-weight: 700;
+            display: none;
+            animation: blink 1s infinite;
+        }
+
+        /* Viewer count */
+        .stream-meta-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 12px;
+            background: rgba(0,0,0,0.6);
+            border-top: 1px solid rgba(255,0,0,0.2);
+        }
+        .stream-meta-left { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+        .stream-meta-right { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+
+        /* JOIN LIVE button */
+        .join-live-btn {
+            background: linear-gradient(135deg, #b71c1c, #c62828);
+            color: #fff; border: none;
+            padding: 10px 30px; border-radius: 6px;
+            font-size: 14px; font-weight: 900;
+            cursor: pointer; letter-spacing: 1px;
+            margin-top: 8px;
+            animation: blink 1.5s infinite;
+        }
+        .join-live-btn:active { opacity: 0.8; }
+
+        @keyframes blink { 50% { opacity: 0.6; } }
+
+        /* ===== TIMER ===== */
+        .timer-section { padding: 14px 10px 6px; }
+        .timer-labels { display: flex; justify-content: center; gap: 10px; margin-bottom: 4px; }
+        .timer-labels span { min-width: 80px; font-size: 12px; font-weight: 700; color: #ccc; letter-spacing: 1px; }
+        .timer-boxes { display: flex; justify-content: center; gap: 10px; }
+        .t-box {
+            background: #fff; color: #000; font-weight: 900; font-size: 24px;
+            padding: 10px 6px; border: 2px solid var(--accent-yellow);
+            border-radius: 6px; min-width: 80px;
+        }
+
+        /* ===== GAME STATUS ===== */
+        #gameStatusBar {
+            font-size: 26px; font-weight: 900;
+            margin: 10px 0 6px;
+            text-shadow: 0 0 12px currentColor;
+            animation: blink 1.4s infinite;
+        }
+        #gameStatusBar.live   { color: var(--accent-red); }
+        #gameStatusBar.over   { color: var(--accent-yellow); animation: none; }
+        #gameStatusBar.wait   { color: var(--accent-orange); }
+        #gameStatusBar.winner { color: var(--accent-yellow); }
+
+        /* ===== WINNER BANNER ===== */
+        #winnerBanner {
+            display: none; color: var(--accent-yellow);
+            font-size: 20px; font-weight: 900; margin: 4px 0;
+            text-shadow: 0 0 10px rgba(255,255,0,0.6);
+            animation: blink 1s infinite;
+        }
+        #winnerBanner.show { display: block; }
+
+        /* ===== BOARD ===== */
+        .board-container { padding: 10px; max-width: 460px; margin: 0 auto; position: relative; }
+        .board-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+        .cell {
+            background: white; color: black; aspect-ratio: 1;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 900; border: 1px solid #4a0e4e;
+            transition: background 0.35s ease;
+        }
+        .cell.called { background: transparent !important; color: #fff !important; border: 1px solid var(--accent-pink); }
+        .cell.latest { background: var(--accent-yellow) !important; color: #000 !important; box-shadow: 0 0 15px var(--accent-yellow); z-index: 1; }
+
+        /* ===== BUBBLE ===== */
+        .smooth-bubble {
+            position: fixed; width: 48px; height: 48px;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--accent-yellow), #ffa500);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #000; font-weight: 900; font-size: 18px; z-index: 9999;
+            box-shadow: 0 5px 18px rgba(255,220,0,0.6); pointer-events: none;
+            animation: bubbleRise 3.5s ease-out forwards;
+        }
+        @keyframes bubbleRise {
+            0%   { transform: translateY(0) scale(1); opacity: 0; }
+            15%  { opacity: 1; transform: translateY(-30px) scale(1.35); }
+            100% { transform: translateY(-340px) scale(0.8); opacity: 0; }
+        }
+
+        /* ===== RECENT BALLS ===== */
+        .recent-balls {
+            display: flex; justify-content: center;
+            gap: 8px; padding: 14px; flex-wrap: wrap; min-height: 64px;
+        }
+        .ball {
+            width: 40px; height: 40px; background: #e9a1c0; color: #000;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 900; box-shadow: 2px 2px 6px rgba(0,0,0,0.35);
+            animation: ballEntrance 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes ballEntrance {
+            0%   { transform: scale(0) rotate(-180deg) translateY(40px); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg) translateY(0); opacity: 1; }
+        }
+
+        /* ===== DIVIDEND LIST ===== */
+        .div-title { font-size: 22px; font-weight: 900; color: var(--accent-yellow); margin: 16px 0 4px; }
+        .div-item { background: rgba(0,10,50,0.7); padding: 13px; border-bottom: 1px solid #333; margin: 0 10px; }
+        .view-btn { background: var(--accent-pink); color: #fff; border: none; padding: 9px 50px; border-radius: 5px; font-weight: 700; cursor: pointer; margin-top: 6px; }
+
+        /* ===== FLOATING BUTTON ===== */
+        .floating-sheet-btn {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, #ff8c00, #e65100);
+            border-radius: 50%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 2px solid #fff; z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .floating-sheet-btn:hover { transform: scale(1.1); }
+        .floating-sheet-btn svg { width: 24px; height: 24px; margin-bottom: 1px; }
+        .floating-sheet-btn span { color: #fff; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+
+        /* ===== MODAL ===== */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10001; align-items: center; justify-content: center; padding: 15px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #001457; border: 2px solid #0000ff; width: 100%; max-width: 380px; padding: 20px; position: relative; border-radius: 10px; }
+
+        /* ===== HANDRISE ===== */
+        .handrise-section {
+            margin: 0 10px 80px;
+            background: rgba(0,10,50,0.75);
+            border: 1px solid rgba(255,255,0,0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+        }
+        .handrise-label {
+            font-size: 11px; font-weight: 900; color: rgba(255,255,255,0.4);
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .handrise-btns {
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+        }
+        .hr-btn {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            font-size: 22px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+            color: #fff;
+        }
+        .hr-btn:active { transform: scale(0.88); background: rgba(255,255,0,0.15); }
+        .hr-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        .hr-name-input {
+            width: 100%; padding: 8px 12px; margin-bottom: 10px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px; color: #fff;
+            font-size: 13px; font-family: 'Roboto', sans-serif; outline: none;
+        }
+        .hr-name-input::placeholder { color: rgba(255,255,255,0.3); }
+        .hr-name-input:focus { border-color: rgba(255,255,0,0.5); }
+        .hr-sent-msg {
+            text-align: center; font-size: 12px; color: var(--accent-green);
+            font-weight: 700; margin-top: 6px; display: none;
+        }
+
+
+
+        /* Stream quality indicator */
+        .quality-dot {
+            display: inline-block; width: 8px; height: 8px;
+            background: rgba(255,255,255,0.2); border-radius: 50%;
+            margin-right: 4px; vertical-align: middle;
+        }
+        .quality-dot.good { background: var(--accent-green); }
+        .quality-dot.ok   { background: var(--accent-orange); }
+        .quality-dot.bad  { background: var(--accent-red); }
+    </style>
 </head>
 <body>
-<div id="app" v-cloak>
-  <div id="toast-el" class="toast-msg"></div>
 
-  <!-- No Live Popup -->
-  <div v-if="showNoLivePopup" class="no-live-popup-overlay" @click.self="showNoLivePopup=false">
-    <div class="no-live-popup">
-      <div style="width:72px;height:72px;background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-        <i class="fa-solid fa-video-slash" style="font-size:28px;color:#ef4444;"></i>
-      </div>
-      <div style="font-size:20px;font-weight:900;margin-bottom:10px;">এখন লাইভ নেই</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.55);line-height:1.7;margin-bottom:24px;">
-        লাইভ শুরু হলে আমাদের সোশ্যাল মিডিয়ায় জানানো হবে।<br>ফলো করে রাখুন!
-      </div>
-      <button @click="showNoLivePopup=false"
-        style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;border:none;cursor:pointer;width:100%;font-family:inherit;">
-        ঠিক আছে
-      </button>
+
+    <!-- ===== AUTH LOADING OVERLAY ===== -->
+    <div id="authOverlay" style="position:fixed;inset:0;background:rgba(0,0,10,0.95);display:flex;align-items:center;justify-content:center;z-index:99999;flex-direction:column;gap:16px;">
+        <div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.15);border-top-color:#ffff00;border-radius:50%;animation:authSpin 0.8s linear infinite;"></div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.5);letter-spacing:1px;">অ্যাকাউন্ট যাচাই হচ্ছে...</div>
+        <style>@keyframes authSpin{to{transform:rotate(360deg)}}
+        #authOverlay.hidden{display:none!important}
+        #userHud{display:none;align-items:center;justify-content:space-between;gap:10px;background:rgba(0,0,0,0.8);border-bottom:1px solid rgba(255,255,0,0.2);padding:10px 14px;position:sticky;top:0;z-index:500;}
+        #userHud.show{display:flex!important}
+        </style>
     </div>
-  </div>
 
-  <div style="display:flex;flex-direction:column;height:100vh;background:var(--bg);">
-    <header class="app-header">
-      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
-        <a href="index.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
-          <i class="fa-solid fa-arrow-left"></i>
-        </a>
-        <div style="flex:1;">
-          <div style="font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px;">
-            <span class="badge badge-live">● LIVE</span> Live Stream
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <main class="page-scroll" style="padding:0;">
-      <div v-if="liveLoading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;">
-        <div class="spinner" style="width:44px;height:44px;border-top-color:var(--red);border-width:3px;margin-bottom:16px;"></div>
-        <div style="font-size:13px;color:var(--text-muted);">লাইভ লোড হচ্ছে...</div>
-      </div>
-
-      <div v-else>
-        <!-- Live Section (সবসময় দেখাবে) -->
-        <div style="background:linear-gradient(135deg,#1a0505,#2d0808,#1a0505);padding:40px 24px 32px;text-align:center;position:relative;overflow:hidden;">
-          <div style="position:absolute;top:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(239,68,68,0.15) 0%,transparent 70%);pointer-events:none;"></div>
-          <div style="position:absolute;bottom:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(239,68,68,0.1) 0%,transparent 70%);pointer-events:none;"></div>
-
-          <div style="position:relative;display:inline-block;margin-bottom:20px;">
-            <div style="width:80px;height:80px;background:rgba(239,68,68,0.2);border:2px solid rgba(239,68,68,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;">
-              <i class="fa-solid fa-video" style="font-size:34px;color:#ef4444;"></i>
+    <!-- ===== USER HUD ===== -->
+    <div id="userHud">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <img id="hudAvatar" src="https://i.pravatar.cc/150?img=12" style="width:36px;height:36px;border-radius:50%;border:2px solid #ffff00;object-fit:cover;" alt="">
+            <div>
+                <div id="hudName" style="font-size:14px;font-weight:700;color:#fff;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px;">লগড ইন</div>
             </div>
-            <div v-if="liveUrl" style="position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(239,68,68,0.3);animation:pulse-ring 1.8s ease-out infinite;"></div>
-          </div>
+        </div>
+        <div style="background:rgba(255,255,0,0.12);border:1px solid rgba(255,255,0,0.35);border-radius:20px;padding:5px 14px;font-size:14px;font-weight:900;color:#ffff00;display:flex;align-items:center;gap:6px;">
+            <span style="width:7px;height:7px;background:#00ff00;border-radius:50%;display:inline-block;animation:hudPulse 1.5s infinite;"></span>
+            ৳<span id="hudBalance">0</span>
+            <style>@keyframes hudPulse{50%{opacity:0.4;transform:scale(1.4)}}</style>
+        </div>
+    </div>
 
-          <div v-if="liveUrl">
-            <div style="font-size:22px;font-weight:900;margin-bottom:8px;">🔴 Live চলছে!</div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:28px;">নিচের বাটনে ট্যাপ করে লাইভ দেখুন</div>
-          </div>
-          <div v-else>
-            <div style="font-size:22px;font-weight:900;margin-bottom:8px;">এখন লাইভ নেই</div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:28px;">লাইভ শুরু হলে নোটিফিকেশন পাবেন</div>
-          </div>
+    <!-- ===== WIN TOAST ===== -->
+    <div id="winToast" style="position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,#064420,#0a6632);border:2px solid #00ff00;border-radius:16px;padding:16px 26px;z-index:9000;opacity:0;pointer-events:none;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);text-align:center;min-width:240px;box-shadow:0 0 30px rgba(0,255,0,0.3);">
+        <span style="font-size:32px;margin-bottom:6px;display:block;">🏆</span>
+        <div style="font-size:16px;font-weight:900;color:#00ff00;">অভিনন্দন! আপনি জিতেছেন!</div>
+        <div id="winToastAmount" style="font-size:26px;font-weight:900;color:#fff;margin-top:4px;">+৳0</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;">ব্যালেন্সে যোগ হয়েছে</div>
+        <style>#winToast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important}</style>
+    </div>
 
-          <!-- ✅ একটাই button — লিংক থাকলে সরাসরি যাবে, না থাকলে popup -->
-          <button @click="goLive"
-            style="display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:800;font-size:17px;padding:18px 32px;border-radius:18px;width:100%;box-shadow:0 8px 32px rgba(239,68,68,0.4);touch-action:manipulation;border:none;cursor:pointer;font-family:inherit;box-sizing:border-box;">
-            <i class="fa-solid fa-play" style="font-size:16px;"></i> এখনই দেখুন
-          </button>
-          <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.35);">Chrome Browser-এ open হবে</div>
+    <!-- BANNER -->
+    <div class="header-banner">
+        <img src="http://starttambola.com/publish/themeStore/db/100008/img/banner_regular.png" class="banner-img" alt="">
+        <div class="banner-text-overlay">H24ONLINE</div>
+    </div>
+
+    <!-- ===== LIVE STREAM ===== -->
+    <div class="live-stream-container offline" id="liveStreamBox" style="display:none;">
+
+        <!-- muted দিয়ে শুরু — browser autoplay policy fix -->
+        <video id="liveVideo" autoplay muted playsinline></video>
+
+        <!-- LIVE badge -->
+        <div class="live-badge-overlay" id="liveBadge">● LIVE</div>
+
+        <!-- Unmute button — user click করলে sound চালু হবে -->
+        <div id="unmuteBar">
+            <button onclick="unmuteVideo()">🔊 সাউন্ড চালু করুন</button>
         </div>
 
-        <!-- Live Link Card -->
-        <div v-if="liveUrl" style="padding:16px;">
-          <div style="background:var(--surface);border:1px solid rgba(239,68,68,0.2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-            <div style="width:38px;height:38px;background:rgba(239,68,68,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <i class="fa-solid fa-link" style="font-size:14px;color:#ef4444;"></i>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Live Link</div>
-              <div style="font-size:12px;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ liveUrl }}</div>
-            </div>
-            <button @click="copyLiveUrl" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--text-muted);cursor:pointer;flex-shrink:0;">
-              <i class="fa-regular fa-copy"></i>
-            </button>
-          </div>
+        <!-- Connecting overlay -->
+        <div class="stream-offline-overlay" id="offlineOverlay">
+            <svg class="stream-offline-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                <path d="M15 10l4.553-2.069A1 1 0 0121 8.869v6.262a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                <line x1="3" y1="3" x2="21" y2="21" stroke-width="1.5"/>
+            </svg>
+            <div class="stream-offline-txt" id="offlineTxt">LIVE STREAM অফলাইন</div>
+            <div class="stream-connecting-txt" id="connectingTxt">সংযোগ স্থাপন হচ্ছে...</div>
+            <button class="join-live-btn" id="joinLiveBtn" onclick="joinLive()" style="display:none;">▶ LIVE দেখুন</button>
         </div>
 
-        <!-- Social Follow -->
-        <div style="padding:0 16px 16px;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;">
-            <div style="font-size:13px;font-weight:800;margin-bottom:4px;">H24 Online ফলো করুন</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">লাইভ events মিস করবেন না!</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <a v-for="(url,platform) in socials" :key="platform" :href="openSocialLink(url)" target="_blank"
-                 style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:600;touch-action:manipulation;">
-                <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
-                     :style="{background: platform==='facebook'?'rgba(24,119,242,0.2)':platform==='whatsapp'?'rgba(37,211,102,0.2)':platform==='instagram'?'rgba(225,48,108,0.2)':platform==='youtube'?'rgba(255,0,0,0.2)':platform==='telegram'?'rgba(0,136,204,0.2)':'rgba(108,99,255,0.2)'}">
-                  <i :class="iconMap[platform]||'fa-brands fa-link'"
-                     :style="{color: platform==='facebook'?'#1877f2':platform==='whatsapp'?'#25d366':platform==='instagram'?'#e1306c':platform==='youtube'?'#ff0000':platform==='telegram'?'#0088cc':'var(--primary)'}"
-                     style="font-size:15px;"></i>
-                </div>
-                <span style="text-transform:capitalize;">{{ platform }}</span>
-              </a>
+        <!-- Bottom meta -->
+        <div class="stream-meta-row">
+            <div class="stream-meta-left">
+                <span class="quality-dot" id="qualityDot"></span>
+                <span id="streamQuality">Offline</span>
             </div>
-          </div>
+            <div class="stream-meta-right" id="streamViewers">👁 — জন দেখছেন</div>
         </div>
-      </div>
-    </main>
-  </div>
-</div>
+    </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+    <!-- HANDRISE -->
+    <div class="handrise-section" id="handriseSection" style="display:none;">
+        <div class="handrise-label">✋ হ্যান্ড রাইস করুন</div>
+        <input type="text" id="hrNameInput" class="hr-name-input" placeholder="আপনার নাম লিখুন..." maxlength="30" autocomplete="off">
+        <div class="handrise-btns">
+            <button class="hr-btn" onclick="sendHandrise('👋')">👋</button>
+            <button class="hr-btn" onclick="sendHandrise('🙌')">🙌</button>
+            <button class="hr-btn" onclick="sendHandrise('🌹')">🌹</button>
+            <button class="hr-btn" onclick="sendHandrise('🌻')">🌻</button>
+            <button class="hr-btn" onclick="sendHandrise('🌺')">🌺</button>
+        </div>
+        <div class="hr-sent-msg" id="hrSentMsg">✅ পাঠানো হয়েছে!</div>
+        <div class="hr-sent-msg" id="hrRoundNotice" style="display:none;color:var(--accent-orange);">⏳ এই রাউন্ডে ইতিমধ্যে পাঠিয়েছেন</div>
+    </div>
 
-const firebaseConfig = { apiKey:"AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c", authDomain:"h24-online.firebaseapp.com", projectId:"h24-online", storageBucket:"h24-online.firebasestorage.app", messagingSenderId:"808524719613", appId:"1:808524719613:web:7f1abe9e70a346c3376594" };
-const fireApp = initializeApp(firebaseConfig);
-const db = getFirestore(fireApp);
 
-createApp({
-  setup() {
-    const liveUrl = ref('');
-    const liveLoading = ref(true);
-    const socials = ref({});
-    const showNoLivePopup = ref(false);
-    const iconMap = { facebook: 'fa-brands fa-facebook-f', instagram: 'fa-brands fa-instagram', tiktok: 'fa-brands fa-tiktok', youtube: 'fa-brands fa-youtube', telegram: 'fa-brands fa-telegram', whatsapp: 'fa-brands fa-whatsapp' };
 
-    const goLive = () => {
-      if (liveUrl.value) {
-        // ✅ সরাসরি লিংকে যাবে, SPCK preview খুলবে না
-        window.location.href = liveUrl.value;
-      } else {
-        // লিংক না থাকলে সুন্দর popup দেখাবে
-        showNoLivePopup.value = true;
-      }
+    <!-- TIMER -->
+    <div id="gameSection">
+    <div class="timer-section">
+        <div class="timer-labels">
+            <span>Hours</span><span>Minutes</span><span>Seconds</span>
+        </div>
+        <div class="timer-boxes">
+            <div class="t-box" id="h">00</div>
+            <div class="t-box" id="m">00</div>
+            <div class="t-box" id="s">00</div>
+        </div>
+    </div>
+
+    <!-- GAME STATUS -->
+    <div id="gameStatusBar" class="wait">NEXT ROUND LOADING...</div>
+
+    <!-- WINNER BANNER -->
+    <div id="winnerBanner">🏆 WINNER CHECK TIME!</div>
+
+    <!-- BOARD -->
+    <div class="board-container">
+        <div class="board-grid" id="mainBoard"></div>
+    </div>
+
+    <!-- RECENT BALLS -->
+    <div class="recent-balls" id="recentBalls"></div>
+
+    <!-- DIVIDEND LIST -->
+    <div class="dividend-section">
+        <div class="div-title">DIVIDEND LIST</div>
+        <div id="divList"></div>
+    </div>
+    </div><!-- end gameSection -->
+
+    <!-- FLOATING SHEET BUTTON -->
+    <a href="https://h24online.vercel.app" class="floating-sheet-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span>SHEET</span>
+    </a>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <button onclick="closeModal()" style="float:right;color:#fff;background:none;border:none;font-size:26px;cursor:pointer;">&times;</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+<script>
+// ===== FIREBASE =====
+const firebaseConfig = {
+    apiKey: "AIzaSyD3WQJHDvRgWApZaNXW4Uyk5xrDj3LEQBQ",
+    authDomain: "test-only-12cb4.firebaseapp.com",
+    databaseURL: "https://test-only-12cb4-default-rtdb.firebaseio.com",
+    projectId: "test-only-12cb4",
+    storageBucket: "test-only-12cb4.firebasestorage.app",
+    messagingSenderId: "117153640941",
+    appId: "1:117153640941:web:19be2776f788e3bdb5b7e4"
+};
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ===== GAME STATE =====
+let calledNums      = [];
+let prevCalledNums  = [];
+let lastBall        = 0;
+let winners         = {};
+let roundStartTime  = 0;
+let currentRoundNum = 0;
+let gameStatus      = 'WAITING';
+let numberPool      = [];
+
+// ===== WEBRTC STATE =====
+let myViewerId  = null;
+let peerConn    = null;
+let isJoined    = false;
+let hostIsLive  = false;
+let iceQueue    = [];
+let offerListenerRef  = null;
+let iceListenerRef    = null;
+
+const ICE_SERVERS = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+    ]
+};
+
+function genId() {
+    return 'v_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now().toString(36);
+}
+myViewerId = genId();
+
+// ===== CONSTANTS =====
+const CYCLE      = 20 * 60 * 1000;
+const GAME_DUR   =  9 * 60 * 1000;
+const WINNER_DUR =  3 * 60 * 1000;
+const WAIT_END   = 12 * 60 * 1000;
+
+// ===== BUILD BOARD =====
+const boardEl = document.getElementById('mainBoard');
+for (let i = 1; i <= 90; i++) {
+    boardEl.innerHTML += `<div class="cell" id="c-${i}">${i}</div>`;
+}
+
+// ===== UNMUTE VIDEO (user interaction দিয়ে sound চালু) =====
+function unmuteVideo() {
+    const video = document.getElementById('liveVideo');
+    video.muted = false;
+    video.volume = 1.0;
+    document.getElementById('unmuteBar').style.display = 'none';
+}
+
+// ===== WATCH HOST STATUS =====
+database.ref('webrtc/hostStatus').on('value', snap => {
+    const data = snap.val();
+    hostIsLive = data && data.live === true;
+
+    if (hostIsLive) {
+        document.getElementById('liveStreamBox').style.display = 'block';
+        document.getElementById('offlineTxt').textContent = 'LIVE চলছে! সংযোগ হচ্ছে...';
+        document.getElementById('liveStreamBox').classList.remove('offline');
+        document.getElementById('streamQuality').textContent = 'Live Available';
+        document.getElementById('qualityDot').className = 'quality-dot ok';
+
+        // autoMode OFF হলে stream বড় করো (board নেই, তাই full view)
+        const liveBox = document.getElementById('liveStreamBox');
+        if (!autoModeOn) {
+            liveBox.style.margin = '0 10px';
+            liveBox.style.borderRadius = '12px';
+        } else {
+            liveBox.style.margin = '';
+            liveBox.style.borderRadius = '';
+        }
+
+        if (!isJoined) {
+            setTimeout(() => joinLive(), 800);
+        }
+    } else {
+        document.getElementById('liveStreamBox').style.display = 'none';
+        hostIsLive = false;
+        cleanupPeer();
+        setStreamOffline('LIVE STREAM অফলাইন');
+    }
+});
+
+// ===== CLEANUP PEER =====
+function cleanupPeer() {
+    if (offerListenerRef) {
+        database.ref(`webrtc/offers/${myViewerId}`).off('value', offerListenerRef);
+        offerListenerRef = null;
+    }
+    if (iceListenerRef) {
+        database.ref(`webrtc/offers/${myViewerId}/ice`).off('child_added', iceListenerRef);
+        iceListenerRef = null;
+    }
+    if (peerConn) {
+        peerConn.close();
+        peerConn = null;
+    }
+    iceQueue = [];
+    isJoined = false;
+}
+
+// ===== JOIN LIVE =====
+async function joinLive() {
+    if (isJoined || !hostIsLive) return;
+
+    // আগের connection পরিষ্কার করুন
+    cleanupPeer();
+
+    document.getElementById('offlineTxt').style.display = 'none';
+    document.getElementById('joinLiveBtn').style.display = 'none';
+    document.getElementById('connectingTxt').style.display = 'block';
+    document.getElementById('unmuteBar').style.display = 'none';
+
+    peerConn = new RTCPeerConnection(ICE_SERVERS);
+
+    // ===== TRACK EVENT — video stream পেলে show করো =====
+    peerConn.ontrack = e => {
+        const video = document.getElementById('liveVideo');
+        if (video.srcObject !== e.streams[0]) {
+            video.srcObject = e.streams[0];
+            // প্রথমে muted দিয়ে play — browser policy
+            video.muted = true;
+            video.play().then(() => {
+                // Play সফল হলে unmute button দেখাও
+                document.getElementById('unmuteBar').style.display = 'block';
+            }).catch(err => {
+                console.warn('Autoplay blocked:', err);
+            });
+        }
+        document.getElementById('offlineOverlay').classList.add('hidden');
+        document.getElementById('liveBadge').classList.add('show');
+        document.getElementById('connectingTxt').style.display = 'none';
+        document.getElementById('streamQuality').textContent = 'HD Live';
+        document.getElementById('qualityDot').className = 'quality-dot good';
     };
 
-    const copyLiveUrl = () => {
-      if (liveUrl.value) { navigator.clipboard.writeText(liveUrl.value).catch(()=>{}); }
+    // ===== OUR ICE CANDIDATES → ADMIN এ পাঠাও =====
+    peerConn.onicecandidate = async e => {
+        if (e.candidate) {
+            try {
+                await database.ref(`webrtc/viewers/${myViewerId}`).update({
+                    type: 'ice',
+                    candidate: e.candidate.toJSON()
+                });
+            } catch(err) { console.warn('ICE send error:', err); }
+        }
     };
 
-    const openSocialLink = (url) => {
-      if (!url) return '#';
-      if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      if (url.startsWith('whatsapp://')) { const m = url.match(/phone=(\d+)/); return m ? `https://wa.me/${m[1]}` : 'https://wa.me'; }
-      if (url.startsWith('tg://')) return url.replace('tg://resolve?domain=', 'https://t.me/');
-      return 'https://' + url;
+    // ===== CONNECTION STATE CHANGE =====
+    peerConn.onconnectionstatechange = () => {
+        if (!peerConn) return;
+        const state = peerConn.connectionState;
+        console.log('Connection state:', state);
+
+        if (state === 'connected') {
+            isJoined = true;
+            document.getElementById('connectingTxt').style.display = 'none';
+        } else if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+            isJoined = false;
+            document.getElementById('unmuteBar').style.display = 'none';
+            setStreamOffline('সংযোগ বিচ্ছিন্ন — পুনরায় চেষ্টা হচ্ছে...');
+            if (hostIsLive) {
+                setTimeout(() => joinLive(), 3000);
+            }
+        }
     };
 
-    onMounted(async () => {
-      try { const s = await getDoc(doc(db, 'settings', 'live')); if (s.exists()) liveUrl.value = s.data().url || ''; } catch(e) {}
-      try { const s = await getDoc(doc(db, 'admin', 'settings')); if (s.exists()) socials.value = s.data(); } catch(e) {}
-      liveLoading.value = false;
+    // ===== FIREBASE এ JOIN REGISTER করো =====
+    try {
+        await database.ref(`webrtc/viewers/${myViewerId}`).set({
+            type: 'join',
+            joinedAt: Date.now()
+        });
+    } catch(err) {
+        console.error('Register error:', err);
+        return;
+    }
+
+    // ===== ADMIN এর OFFER LISTEN করো =====
+    offerListenerRef = async snap => {
+        const data = snap.val();
+        if (!data || data.type !== 'offer') return;
+        if (!peerConn) return;
+
+        // শুধুমাত্র stable state-এ offer process করো
+        if (peerConn.signalingState !== 'stable') {
+            console.warn('Not stable, skipping offer. State:', peerConn.signalingState);
+            return;
+        }
+
+        try {
+            // Remote description সেট করো
+            await peerConn.setRemoteDescription(new RTCSessionDescription(data.sdp));
+
+            // Remote description সেট হওয়ার পর queue করা ICE candidates যোগ করো
+            for (const ice of iceQueue) {
+                try {
+                    await peerConn.addIceCandidate(new RTCIceCandidate(ice));
+                } catch(e) { console.warn('Queued ICE error:', e); }
+            }
+            iceQueue = [];
+
+            // Answer তৈরি করো
+            const answer = await peerConn.createAnswer();
+            await peerConn.setLocalDescription(answer);
+
+            // Answer admin-এ পাঠাও
+            await database.ref(`webrtc/viewers/${myViewerId}`).set({
+                type: 'answer',
+                sdp: { type: answer.type, sdp: answer.sdp }
+            });
+
+            console.log('Answer sent successfully');
+        } catch(e) {
+            console.error('Offer/Answer error:', e);
+        }
+    };
+    database.ref(`webrtc/offers/${myViewerId}`).on('value', offerListenerRef);
+
+    // ===== ADMIN এর ICE CANDIDATES LISTEN করো =====
+    iceListenerRef = async snap => {
+        const data = snap.val();
+        if (!data || !data.candidate) return;
+        if (!peerConn) return;
+
+        if (peerConn.remoteDescription && peerConn.remoteDescription.type) {
+            // Remote description আছে — সরাসরি যোগ করো
+            try {
+                await peerConn.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch(e) { console.warn('ICE add error:', e); }
+        } else {
+            // Remote description নেই — queue করো
+            iceQueue.push(data.candidate);
+        }
+    };
+    database.ref(`webrtc/offers/${myViewerId}/ice`).on('child_added', iceListenerRef);
+}
+
+// ===== SET OFFLINE STATE =====
+function setStreamOffline(msg) {
+    const video = document.getElementById('liveVideo');
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(t => t.stop());
+        video.srcObject = null;
+    }
+    document.getElementById('offlineOverlay').classList.remove('hidden');
+    document.getElementById('offlineTxt').style.display = 'block';
+    document.getElementById('offlineTxt').textContent = msg || 'LIVE STREAM অফলাইন';
+    document.getElementById('joinLiveBtn').style.display = hostIsLive ? 'block' : 'none';
+    document.getElementById('connectingTxt').style.display = 'none';
+    document.getElementById('unmuteBar').style.display = 'none';
+    document.getElementById('liveBadge').classList.remove('show');
+    document.getElementById('liveStreamBox').classList.add('offline');
+    document.getElementById('streamQuality').textContent = 'Offline';
+    document.getElementById('qualityDot').className = 'quality-dot';
+}
+
+// ===== SHOW/HIDE INTERACTION PANELS =====
+database.ref('webrtc/hostStatus').on('value', snap => {
+    const d = snap.val();
+    const live = d && d.live === true;
+    document.getElementById('handriseSection').style.display = live ? 'block' : 'none';
+});
+
+// ===== HANDRISE =====
+let hrSentThisRound = false;
+let hrLastRoundNum = 0;
+
+// রাউন্ড বদলালে handrise lock রিসেট করো
+database.ref('game/roundNum').on('value', snap => {
+    const rn = snap.val() || 0;
+    if (rn !== hrLastRoundNum) {
+        hrLastRoundNum = rn;
+        hrSentThisRound = false;
+        document.querySelectorAll('.hr-btn').forEach(b => b.disabled = false);
+        const nameInput = document.getElementById('hrNameInput');
+        if (nameInput) {
+            nameInput.disabled = false;
+            // আগের নাম মনে রাখো
+            try { nameInput.value = localStorage.getItem('hr_userName') || ''; } catch(e) {}
+        }
+        const notice = document.getElementById('hrRoundNotice');
+        if (notice) notice.style.display = 'none';
+    }
+});
+
+// পেজ লোডে আগের নাম ফিলআপ করো
+window.addEventListener('DOMContentLoaded', () => {
+    try {
+        const saved = localStorage.getItem('hr_userName');
+        if (saved) document.getElementById('hrNameInput').value = saved;
+    } catch(e) {}
+});
+
+function sendHandrise(emoji) {
+    if (hrSentThisRound) return;
+
+    const nameInput = document.getElementById('hrNameInput');
+    const userName = nameInput ? nameInput.value.trim() : '';
+    if (!userName) {
+        nameInput.style.borderColor = 'rgba(255,0,0,0.7)';
+        nameInput.placeholder = '⚠️ নাম দিন...';
+        setTimeout(() => {
+            nameInput.style.borderColor = 'rgba(255,255,255,0.2)';
+            nameInput.placeholder = 'আপনার নাম লিখুন...';
+        }, 2000);
+        return;
+    }
+    // নাম মনে রাখো পরের বার এর জন্য
+    try { localStorage.setItem('hr_userName', userName); } catch(e) {}
+
+    hrSentThisRound = true;
+
+    const id = 'hr_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+    database.ref('interactions/handrise/' + id).set({
+        emoji: emoji,
+        name: userName,
+        time: Date.now(),
+        roundNum: hrLastRoundNum
     });
 
-    return { liveUrl, liveLoading, socials, iconMap, showNoLivePopup, goLive, copyLiveUrl, openSocialLink };
-  }
-}).mount('#app');
+    // সব বাটন disable করো
+    document.querySelectorAll('.hr-btn').forEach(b => b.disabled = true);
+    if (nameInput) nameInput.disabled = true;
+
+    const msg = document.getElementById('hrSentMsg');
+    msg.textContent = emoji + ' পাঠানো হয়েছে!';
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+
+    const notice = document.getElementById('hrRoundNotice');
+    if (notice) notice.style.display = 'block';
+}
+
+// ===== CLEANUP ON UNLOAD =====
+window.addEventListener('beforeunload', () => {
+    cleanupPeer();
+    if (myViewerId) {
+        database.ref(`webrtc/viewers/${myViewerId}`).remove();
+        database.ref(`webrtc/offers/${myViewerId}`).remove();
+    }
+});
+
+// ===== AUTO MODE → BOARD SHOW/HIDE =====
+let autoModeOn = false;
+
+function updateLayout() {
+    const gameSection   = document.getElementById('gameSection');
+    const liveStreamBox = document.getElementById('liveStreamBox');
+
+    if (autoModeOn) {
+        // Auto round চালু — board সবসময় দেখাবে
+        gameSection.style.display = 'block';
+        // Live এর visibility hostStatus listener handle করে
+    } else {
+        // Auto round বন্ধ — board লুকাবে
+        gameSection.style.display = 'none';
+        // Live চললে stream দেখাবে (hostStatus listener handle করে)
+    }
+}
+
+database.ref('game/autoMode').on('value', snap => {
+    autoModeOn = snap.val() === true;
+    updateLayout();
+    // live চলছে থাকলে stream size ও আপডেট করো
+    if (hostIsLive) {
+        const liveBox = document.getElementById('liveStreamBox');
+        if (!autoModeOn) {
+            liveBox.style.margin = '0 10px';
+            liveBox.style.borderRadius = '12px';
+        } else {
+            liveBox.style.margin = '';
+            liveBox.style.borderRadius = '';
+        }
+    }
+});
+
+// ===== FIREBASE GAME LISTENER =====
+database.ref('game').on('value', snap => {
+    const d = snap.val();
+    if (!d) return;
+
+    const newNums      = Array.isArray(d.calledNumbers) ? d.calledNumbers : [];
+    const newRoundNum  = d.roundNum       || 0;
+    const newRoundTime = d.roundStartTime || 0;
+    const prevWinnersJSON = JSON.stringify(winners);
+    winners            = d.winners        || {};
+    gameStatus         = d.status         || 'WAITING';
+    numberPool         = Array.isArray(d.numberPool) ? d.numberPool : [];
+
+    if (newRoundNum !== currentRoundNum) {
+        currentRoundNum = newRoundNum;
+        prevCalledNums  = [];
+        lastBall        = 0;
+        calledNums      = [];
+        resetBoard();
+    }
+    roundStartTime = newRoundTime;
+
+    const freshNums = newNums.filter(n => !prevCalledNums.includes(n));
+    if (freshNums.length > 0) {
+        const latest = newNums[newNums.length - 1];
+        lastBall = latest;
+        speak(latest);
+        setTimeout(() => triggerBubble(latest), 400);
+    }
+
+    // ✅ Winner check — prize credit
+    if (JSON.stringify(d.winners || {}) !== prevWinnersJSON && Object.keys(d.winners || {}).length > 0) {
+        if (typeof window._checkUserWin === 'function') {
+            window._checkUserWin(d.winners, newRoundNum);
+        }
+    }
+
+    prevCalledNums = [...newNums];
+    calledNums     = newNums;
+    updateUI();
+});
+
+// ===== BOARD RESET =====
+function resetBoard() {
+    document.querySelectorAll('.cell').forEach(c => c.classList.remove('called', 'latest'));
+}
+
+// ===== UPDATE UI =====
+function updateUI() {
+    document.querySelectorAll('.cell').forEach(c => c.classList.remove('called', 'latest'));
+    calledNums.forEach(n => {
+        const el = document.getElementById(`c-${n}`);
+        if (el) el.classList.add('called');
+    });
+    if (lastBall > 0) {
+        const el = document.getElementById(`c-${lastBall}`);
+        if (el) { el.classList.remove('called'); el.classList.add('latest'); }
+    }
+    const rb = document.getElementById('recentBalls');
+    rb.innerHTML = '';
+    [...calledNums].reverse().slice(0, 10).forEach(num => {
+        const ball = document.createElement('div');
+        ball.className = 'ball';
+        ball.textContent = num;
+        rb.appendChild(ball);
+    });
+    renderDivs();
+}
+
+// ===== BUBBLE =====
+function triggerBubble(num) {
+    const targetCell = document.getElementById(`c-${num}`);
+    if (!targetCell) return;
+    const rect   = targetCell.getBoundingClientRect();
+    const bubble = document.createElement('div');
+    bubble.className = 'smooth-bubble';
+    bubble.textContent = num;
+    bubble.style.top  = (rect.top  + window.scrollY + rect.height / 2 - 24) + 'px';
+    bubble.style.left = (rect.left + window.scrollX + rect.width  / 2 - 24) + 'px';
+    document.body.appendChild(bubble);
+    setTimeout(() => bubble.remove(), 3500);
+}
+
+// ===== DIVIDEND LIST =====
+function renderDivs() {
+    const list = ['Full House', 'Early Five', 'Top Line', 'Middle Line', 'Bottom Line', 'Corner'];
+    const cont = document.getElementById('divList');
+    cont.innerHTML = '';
+    list.forEach(name => {
+        const key = name.toLowerCase().replace(/ /g, '');
+        const w   = winners[key];
+        cont.innerHTML += `
+            <div class="div-item">
+                <div style="font-size:20px;font-weight:bold;color:#fff;">${name}</div>
+                <div style="font-size:12px;color:var(--accent-yellow);margin-top:2px;">Prize: ৳${{'fullhouse':500,'earlyfive':100,'topline':150,'middleline':150,'bottomline':150,'corner':100}[key]||0}</div>
+                ${w ? `<div style="color:#00ff00;font-weight:bold;font-size:14px;margin-top:4px;">TNO: ${w.tno} &nbsp;|&nbsp; Seat: ${w.seat}</div>` : ''}
+                <button class="view-btn" onclick="showModal('${key}')">VIEW</button>
+            </div>`;
+    });
+}
+
+// ===== VOICE =====
+let voiceUnlocked = false;
+document.body.addEventListener('click', () => {
+    if (!voiceUnlocked && typeof responsiveVoice !== 'undefined') {
+        responsiveVoice.speak(' ', 'UK English Female');
+        voiceUnlocked = true;
+    }
+}, { once: true });
+
+function speak(num) {
+    if (typeof responsiveVoice !== 'undefined') {
+        responsiveVoice.cancel();
+        responsiveVoice.speak('Number ' + num, 'UK English Female');
+    }
+}
+
+// ===== MODAL =====
+function showModal(key) {
+    const w = winners[key];
+    document.getElementById('modalContent').innerHTML = w
+        ? `<h2 style="color:#fff;text-align:center;margin:10px 0;">WINNER<br>TNO: ${w.tno}<br>Seat: ${w.seat}</h2>`
+        : `<h2 style="color:#fff;text-align:center;margin:30px 0;">No Winner Yet</h2>`;
+    document.getElementById('modalOverlay').classList.add('active');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+
+// ===== TIMER & PHASE TICK =====
+function pad(n) { return String(n).padStart(2, '0'); }
+function msToHMS(ms) {
+    if (ms < 0) ms = 0;
+    const tot = Math.floor(ms / 1000);
+    return { h: Math.floor(tot / 3600), m: Math.floor((tot % 3600) / 60), s: tot % 60 };
+}
+
+function tick() {
+    const now        = Date.now();
+    const cycleStart = now - (now % CYCLE);
+    const elapsed    = now - cycleStart;
+    const statusEl   = document.getElementById('gameStatusBar');
+    const bannerEl   = document.getElementById('winnerBanner');
+    bannerEl.classList.remove('show');
+
+    let phase = 'waiting';
+    if (gameStatus === 'GAME IS LIVE' || calledNums.length > 0) {
+        if (roundStartTime > 0) {
+            const liveEnd   = roundStartTime + GAME_DUR;
+            const winnerEnd = liveEnd + WINNER_DUR;
+            phase = (now >= liveEnd && now < winnerEnd) ? 'winner' : 'live';
+        } else { phase = 'live'; }
+    } else if (gameStatus === 'ROUND ENDED') {
+        if (roundStartTime > 0) {
+            const winnerEnd = roundStartTime + GAME_DUR + WINNER_DUR;
+            phase = now < winnerEnd ? 'winner' : 'over';
+        } else { phase = 'over'; }
+    } else {
+        phase = elapsed < WAIT_END ? 'waiting' : 'countdown';
+    }
+
+    if (phase === 'waiting') {
+        const t = msToHMS(WAIT_END - elapsed);
+        setBoxes(t.h, t.m, t.s);
+        statusEl.className = 'wait';
+        statusEl.textContent = 'NEXT ROUND LOADING...';
+    } else if (phase === 'countdown') {
+        const t = msToHMS(CYCLE - elapsed);
+        setBoxes(t.h, t.m, t.s);
+        statusEl.className = 'wait';
+        statusEl.textContent = `⏳ STARTING IN ${pad(t.m)}:${pad(t.s)}`;
+    } else if (phase === 'live') {
+        const elapsed2 = roundStartTime > 0 ? now - roundStartTime : 0;
+        const t = msToHMS(elapsed2);
+        setBoxes(t.h, t.m, t.s);
+        statusEl.className = 'live';
+        statusEl.textContent = 'GAME IS LIVE';
+    } else if (phase === 'winner') {
+        const t = msToHMS(roundStartTime + GAME_DUR + WINNER_DUR - now);
+        setBoxes(t.h, t.m, t.s);
+        statusEl.className = 'winner';
+        statusEl.textContent = 'WINNER CHECK TIME';
+        bannerEl.classList.add('show');
+        bannerEl.textContent = `🏆 WINNER CHECK! বাকি: ${pad(t.m)}:${pad(t.s)}`;
+    } else if (phase === 'over') {
+        setBoxes(0, 0, 0);
+        statusEl.className = 'over';
+        statusEl.textContent = 'GAME IS OVER';
+    }
+}
+
+function setBoxes(h, m, s) {
+    document.getElementById('h').textContent = pad(h);
+    document.getElementById('m').textContent = pad(m);
+    document.getElementById('s').textContent = pad(s);
+}
+
+setInterval(tick, 1000);
+tick();
 </script>
+
+<script type="module">
+// ══════════════════════════════════════════════
+// H24 ONLINE Firebase (Auth + Wallet — Firestore)
+// ══════════════════════════════════════════════
+import { initializeApp as initH24 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+    getAuth, onAuthStateChanged, browserLocalPersistence, setPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+    getFirestore, doc, getDoc, updateDoc, increment, addDoc,
+    collection, serverTimestamp, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const H24_CONFIG = {
+    apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
+    authDomain: "h24-online.firebaseapp.com",
+    projectId: "h24-online",
+    storageBucket: "h24-online.firebasestorage.app",
+    messagingSenderId: "808524719613",
+    appId: "1:808524719613:web:7f1abe9e70a346c3376594"
+};
+
+const h24App  = initH24(H24_CONFIG, 'h24-online-auth');
+const h24Auth = getAuth(h24App);
+const h24db   = getFirestore(h24App);
+
+await setPersistence(h24Auth, browserLocalPersistence).catch(() => {});
+
+let currentUser = null;
+let currentUserData = null;
+
+// Prize amounts per dividend type
+const PRIZE_TABLE = {
+    fullhouse: 500, earlyfive: 100,
+    topline: 150, middleline: 150, bottomline: 150, corner: 100
+};
+
+let paidPrizesThisRound = new Set();
+let currentTrackedRound = 0;
+
+// ── Auth check ──
+onAuthStateChanged(h24Auth, async (user) => {
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+    currentUser = user;
+    localStorage.setItem('userId', user.uid);
+
+    try {
+        const snap = await getDoc(doc(h24db, 'users', user.uid));
+        currentUserData = snap.exists() ? snap.data() : { name: user.displayName || 'User', balance: 0, photoURL: '' };
+    } catch(e) {
+        currentUserData = { name: user.displayName || 'User', balance: 0, photoURL: '' };
+    }
+
+    updateHud();
+
+    // Real-time balance listener
+    onSnapshot(doc(h24db, 'users', user.uid), (d) => {
+        if (d.exists()) {
+            currentUserData = { ...currentUserData, ...d.data() };
+            updateHud();
+        }
+    });
+
+    document.getElementById('authOverlay').classList.add('hidden');
+    document.getElementById('userHud').classList.add('show');
+
+    // Auto-fill handrise name
+    try {
+        const saved = localStorage.getItem('hr_userName') || currentUserData.name || '';
+        if (saved && document.getElementById('hrNameInput')) document.getElementById('hrNameInput').value = saved;
+    } catch(e) {}
+});
+
+function updateHud() {
+    if (!currentUserData) return;
+    document.getElementById('hudName').textContent    = currentUserData.name || 'User';
+    document.getElementById('hudBalance').textContent = Math.floor(currentUserData.balance || 0);
+    document.getElementById('hudAvatar').src = currentUserData.photoURL || 'https://i.pravatar.cc/150?img=12';
+}
+
+// ── Credit prize to winner's wallet ──
+async function creditWinPrize(prizeKey, prizeAmount) {
+    if (!currentUser) return;
+    if (paidPrizesThisRound.has(prizeKey)) return;
+    paidPrizesThisRound.add(prizeKey);
+    try {
+        await updateDoc(doc(h24db, 'users', currentUser.uid), { balance: increment(prizeAmount) });
+        await addDoc(collection(h24db, 'balanceLogs'), {
+            userId: currentUser.uid, type: 'game_win', amount: prizeAmount,
+            note: `Tambola Win - ${prizeKey} (Round ${currentTrackedRound})`,
+            roundNum: currentTrackedRound, createdAt: serverTimestamp()
+        });
+        showWinToast(prizeAmount);
+    } catch(e) {
+        console.error('Prize credit failed:', e);
+        paidPrizesThisRound.delete(prizeKey);
+    }
+}
+
+function showWinToast(amount) {
+    const toast = document.getElementById('winToast');
+    document.getElementById('winToastAmount').textContent = '+৳' + amount;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 5500);
+}
+
+// ── Check if current user is the winner ──
+function checkIfUserWon(winners, newRound) {
+    if (!currentUser || !currentUserData) return;
+    if (newRound !== currentTrackedRound) {
+        paidPrizesThisRound.clear();
+        currentTrackedRound = newRound;
+    }
+    const userTno   = currentUserData.referralCode || currentUser.uid.substring(0, 8);
+    const userPhone = currentUserData.phone || '';
+
+    Object.entries(winners).forEach(([key, winData]) => {
+        if (!winData || !winData.tno) return;
+        if (paidPrizesThisRound.has(key)) return;
+        const prizeAmount = PRIZE_TABLE[key] || 0;
+        if (prizeAmount <= 0) return;
+
+        const winTno = String(winData.tno || '').toLowerCase().trim();
+        const isMatch =
+            winTno === userTno.toLowerCase() ||
+            winTno === userPhone ||
+            winTno === currentUser.uid.toLowerCase() ||
+            (winData.userId && winData.userId === currentUser.uid);
+
+        if (isMatch) creditWinPrize(key, prizeAmount);
+    });
+}
+
+window._checkUserWin = checkIfUserWon;
+</script>
+
 </body>
 </html>
