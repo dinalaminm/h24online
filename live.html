@@ -1030,56 +1030,69 @@ function msToHMS(ms) {
 }
 
 function tick() {
-    const now        = Date.now();
-    const cycleStart = now - (now % CYCLE);
-    const elapsed    = now - cycleStart;
-    const statusEl   = document.getElementById('gameStatusBar');
-    const bannerEl   = document.getElementById('winnerBanner');
+    const now      = Date.now();
+    const statusEl = document.getElementById('gameStatusBar');
+    const bannerEl = document.getElementById('winnerBanner');
     bannerEl.classList.remove('show');
 
-    let phase = 'waiting';
-    if (gameStatus === 'GAME IS LIVE' || calledNums.length > 0) {
-        if (roundStartTime > 0) {
-            const liveEnd   = roundStartTime + GAME_DUR;
-            const winnerEnd = liveEnd + WINNER_DUR;
-            phase = (now >= liveEnd && now < winnerEnd) ? 'winner' : 'live';
-        } else { phase = 'live'; }
-    } else if (gameStatus === 'ROUND ENDED') {
-        if (roundStartTime > 0) {
-            const winnerEnd = roundStartTime + GAME_DUR + WINNER_DUR;
-            phase = now < winnerEnd ? 'winner' : 'over';
-        } else { phase = 'over'; }
-    } else {
-        phase = elapsed < WAIT_END ? 'waiting' : 'countdown';
-    }
+    // ===== নতুন লজিক =====
+    // গেম LIVE → timer বন্ধ (00:00), status দেখাবে
+    // গেম ENDED → পরবর্তী রাউন্ড পর্যন্ত countdown
+    // WAITING → পরবর্তী রাউন্ড পর্যন্ত countdown
 
-    if (phase === 'waiting') {
-        const t = msToHMS(WAIT_END - elapsed);
-        setBoxes(t.h, t.m, t.s);
-        statusEl.className   = 'wait';
-        statusEl.textContent = 'NEXT ROUND LOADING...';
-    } else if (phase === 'countdown') {
-        const t = msToHMS(CYCLE - elapsed);
-        setBoxes(t.h, t.m, t.s);
-        statusEl.className   = 'wait';
-        statusEl.textContent = `⏳ STARTING IN ${pad(t.m)}:${pad(t.s)}`;
-    } else if (phase === 'live') {
-        const elapsed2 = roundStartTime > 0 ? now - roundStartTime : 0;
-        const t = msToHMS(elapsed2);
-        setBoxes(t.h, t.m, t.s);
+    if (gameStatus === 'GAME IS LIVE' || (calledNums.length > 0 && gameStatus !== 'ROUND ENDED')) {
+        // গেম চলছে — timer 00:00 দেখাবে
+        setBoxes(0, 0, 0);
         statusEl.className   = 'live';
         statusEl.textContent = 'GAME IS LIVE';
-    } else if (phase === 'winner') {
-        const t = msToHMS(roundStartTime + GAME_DUR + WINNER_DUR - now);
-        setBoxes(t.h, t.m, t.s);
-        statusEl.className   = 'winner';
-        statusEl.textContent = 'WINNER CHECK TIME';
-        bannerEl.classList.add('show');
-        bannerEl.textContent = `🏆 WINNER CHECK! বাকি: ${pad(t.m)}:${pad(t.s)}`;
-    } else if (phase === 'over') {
-        setBoxes(0, 0, 0);
-        statusEl.className   = 'over';
-        statusEl.textContent = 'GAME IS OVER';
+
+    } else if (gameStatus === 'ROUND ENDED') {
+        // গেম শেষ → countdown শুরু
+        if (roundStartTime > 0) {
+            const nextRoundAt = roundStartTime + CYCLE;
+            const diff = nextRoundAt - now;
+            if (diff > 0) {
+                const t = msToHMS(diff);
+                setBoxes(t.h, t.m, t.s);
+                statusEl.className   = 'winner';
+                statusEl.textContent = 'ROUND ENDED';
+                bannerEl.classList.add('show');
+                bannerEl.textContent = `🏆 পরবর্তী রাউন্ড: ${pad(t.m)}:${pad(t.s)}`;
+            } else {
+                setBoxes(0, 0, 0);
+                statusEl.className   = 'over';
+                statusEl.textContent = 'GAME IS OVER';
+            }
+        } else {
+            setBoxes(0, 0, 0);
+            statusEl.className   = 'over';
+            statusEl.textContent = 'GAME IS OVER';
+        }
+
+    } else {
+        // WAITING — কোনো রাউন্ড চলছে না
+        if (roundStartTime > 0) {
+            const nextRoundAt = roundStartTime + CYCLE;
+            const diff = nextRoundAt - now;
+            if (diff > 0) {
+                const t = msToHMS(diff);
+                setBoxes(t.h, t.m, t.s);
+                statusEl.className   = 'wait';
+                statusEl.textContent = `⏳ পরবর্তী রাউন্ড ${pad(t.m)}:${pad(t.s)} পরে`;
+            } else {
+                setBoxes(0, 0, 0);
+                statusEl.className   = 'wait';
+                statusEl.textContent = 'NEXT ROUND LOADING...';
+            }
+        } else {
+            // একেবারে প্রথম অবস্থা
+            const nextCycle = (Math.floor(now / CYCLE) + 1) * CYCLE;
+            const diff = nextCycle - now;
+            const t = msToHMS(diff);
+            setBoxes(t.h, t.m, t.s);
+            statusEl.className   = 'wait';
+            statusEl.textContent = 'NEXT ROUND LOADING...';
+        }
     }
 }
 
