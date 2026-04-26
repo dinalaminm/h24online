@@ -248,7 +248,65 @@
         /* ===== MODAL ===== */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10001; align-items: center; justify-content: center; padding: 15px; }
         .modal-overlay.active { display: flex; }
-        .modal { background: #001457; border: 2px solid #0000ff; width: 100%; max-width: 380px; padding: 20px; position: relative; border-radius: 10px; }
+        .modal { background: #001457; border: 2px solid #0000ff; width: 100%; max-width: 420px; padding: 16px 14px; position: relative; border-radius: 10px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* ===== SHEET PANEL ===== */
+        #sheetPanel {
+            position: fixed; inset: 0; z-index: 10002;
+            background: url('http://starttambola.com/publish/themeStore/db/100008/img/bg.png') no-repeat center center;
+            background-size: cover;
+            transform: translateY(100%);
+            transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
+            display: flex; flex-direction: column;
+        }
+        #sheetPanel.open { transform: translateY(0); }
+        .sheet-topbar {
+            background: rgba(0,0,0,0.88); border-bottom: 3px solid #c2185b;
+            padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .sheet-title { font-size: 17px; font-weight: 900; color: #ffd700; letter-spacing: 2px; }
+        .sheet-close-btn {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; font-size: 22px; width: 36px; height: 36px;
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .sheet-search-area { background: rgba(0,0,0,0.6); padding: 10px 12px; flex-shrink: 0; }
+        .sheet-search-input {
+            width: 100%; padding: 11px 14px; background: #fff; color: #000;
+            border: none; border-radius: 7px; font-size: 15px; font-weight: 700; outline: none; margin-bottom: 8px;
+        }
+        .sheet-search-input::placeholder { color: #999; font-weight: 400; }
+        .sheet-search-btn {
+            width: 100%; padding: 11px; background: #c62828; color: #fff;
+            border: none; border-radius: 7px; font-size: 14px; font-weight: 900; cursor: pointer; letter-spacing: 2px;
+        }
+        .sheet-body { flex: 1; overflow-y: auto; padding: 8px 10px 20px; -webkit-overflow-scrolling: touch; }
+        .s-ticket-block { margin-bottom: 12px; }
+        .s-ticket-header {
+            background: #c2185b; color: #fff; font-size: 14px; font-weight: 900;
+            padding: 7px 12px; border-radius: 7px 7px 0 0;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .s-ticket-header.has-win { background: linear-gradient(90deg,#b71c1c,#c2185b); }
+        .s-win-badge { font-size: 9px; background: #ffff00; color: #000; padding: 2px 6px; border-radius: 8px; font-weight: 900; margin-left: 5px; }
+        .s-ticket-grid {
+            display: grid; grid-template-columns: repeat(9,1fr);
+            gap: 2px; border: 3px solid #ffd700; border-top: none;
+            border-radius: 0 0 7px 7px; overflow: hidden; background: #ffd700;
+        }
+        .s-cell {
+            background: #fff9f0; color: #000; font-weight: 900; font-size: 14px;
+            text-align: center; padding: 9px 0; display: flex; align-items: center; justify-content: center; min-height: 38px;
+        }
+        .s-cell.empty { background: #f0f0f0; }
+        .s-cell.hit { background: #c2185b !important; color: #fff !important; }
+        .s-div-title { color: #fff; font-size: 16px; font-weight: 900; text-align: center; letter-spacing: 3px; padding: 14px 0 6px; }
+        .s-div-item { background: rgba(0,10,50,0.8); border-bottom: 1px solid #333; padding: 10px 12px; }
+        .s-div-type { font-size: 17px; font-weight: 700; color: #fff; }
+        .s-div-winner { color: #00ff00; font-size: 12px; font-weight: 700; margin-top: 3px; }
+        .s-view-btn { display: block; width: 100%; background: #c2185b; color: #fff; border: none; padding: 8px; border-radius: 5px; font-weight: 700; cursor: pointer; margin-top: 6px; font-size: 13px; }
+        .s-no-result { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.3); font-size: 13px; font-weight: 700; }
+        .s-loading { text-align: center; padding: 30px; color: #ffd700; font-size: 13px; font-weight: 700; animation: blink 1s infinite; }
 
         /* ===== HANDRISE ===== */
         .handrise-section {
@@ -403,6 +461,17 @@
     <!-- RECENT BALLS -->
     <div class="recent-balls" id="recentBalls"></div>
 
+    <!-- SEARCH INPUT BELOW BALLS -->
+    <div style="padding: 8px 12px 4px;">
+        <input type="text" id="quickSearchInput" readonly
+            placeholder="🔍 Ticket / Set নম্বর সার্চ করুন..."
+            onclick="openSheet()"
+            style="width:100%; padding:11px 16px; background:#fff; color:#333;
+                   border:none; border-radius:8px; font-size:14px; font-weight:700;
+                   outline:none; cursor:pointer; text-align:center; letter-spacing:0.5px;
+                   box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+    </div>
+
     <!-- DIVIDEND LIST -->
     <div class="dividend-section">
         <div class="div-title">DIVIDEND LIST</div>
@@ -417,6 +486,24 @@
         </svg>
         <span>SHEET</span>
     </a>
+
+    <!-- SHEET PANEL -->
+    <div id="sheetPanel">
+        <div class="sheet-topbar">
+            <div class="sheet-title">🎫 TICKET SHEET</div>
+            <button class="sheet-close-btn" onclick="closeSheet()">✕</button>
+        </div>
+        <div class="sheet-search-area">
+            <input type="text" id="sheetSearchInput" class="sheet-search-input"
+                placeholder="Ticket no. / Set no. লিখুন... (যেমন: N055, 325)"
+                inputmode="numeric"
+                onkeydown="if(event.key==='Enter') doSheetSearch()">
+            <button class="sheet-search-btn" onclick="doSheetSearch()">🔍 SEARCH</button>
+        </div>
+        <div class="sheet-body" id="sheetBody">
+            <div class="s-loading">⏳ টিকিট লোড হচ্ছে...</div>
+        </div>
+    </div>
 
     <!-- MODAL -->
     <div class="modal-overlay" id="modalOverlay">
@@ -935,6 +1022,11 @@ onValue(ref(database, 'game'), snap => {
     prevCalledNums = [...newNums];
     calledNums     = newNums;
     updateUI();
+
+    // Auto winner detection — প্রতিটি নতুন নাম্বার call এর পরে
+    if (gameStatus === 'GAME IS LIVE' && newNums.length > 0) {
+        detectWinners(newNums, winners, currentRoundNum);
+    }
 });
 
 // ===== BOARD RESET =====
@@ -962,6 +1054,7 @@ function updateUI() {
         rb.appendChild(ball);
     });
     renderDivs();
+    refreshSheetIfOpen();
 }
 
 // ===== BUBBLE =====
@@ -981,18 +1074,425 @@ function triggerBubble(num) {
 // ===== DIVIDEND LIST =====
 function renderDivs() {
     const list = ['Full House', 'Corner', 'Early Five', 'Quick 7', 'Top Line', 'Middle Line', 'Bottom Line'];
+    const keyMap = {
+        'Full House':   'fullhouse',
+        'Corner':       'corner',
+        'Early Five':   'earlyfive',
+        'Quick 7':      'quick7',
+        'Top Line':     'topline',
+        'Middle Line':  'middleline',
+        'Bottom Line':  'bottomline'
+    };
     const cont = document.getElementById('divList');
     cont.innerHTML = '';
     list.forEach(name => {
-        const key = name.toLowerCase().replace(/ /g, '');
-        const w   = winners[key];
+        const key = keyMap[name];
         cont.innerHTML += `
             <div class="div-item">
                 <div style="font-size:20px;font-weight:bold;color:#fff;">${name}</div>
-                ${w ? `<div style="color:#00ff00;font-weight:bold;font-size:14px;margin-top:4px;">TNO: ${w.tno} &nbsp;|&nbsp; Seat: ${w.seat}</div>` : ''}
                 <button class="view-btn" onclick="showModal('${key}')">VIEW</button>
             </div>`;
     });
+}
+
+// ===== SHEET PANEL =====
+const TOTAL_SETS_S  = 100;
+const TICKETS_PER_S = 6;
+
+function seededRandS(seed) {
+    let s = seed;
+    return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
+}
+
+function generateSetS(setNo) {
+    const rand = seededRandS(setNo * 999983 + 7);
+    const colPools = [
+        [1,2,3,4,5,6,7,8,9],[10,11,12,13,14,15,16,17,18,19],
+        [20,21,22,23,24,25,26,27,28,29],[30,31,32,33,34,35,36,37,38,39],
+        [40,41,42,43,44,45,46,47,48,49],[50,51,52,53,54,55,56,57,58,59],
+        [60,61,62,63,64,65,66,67,68,69],[70,71,72,73,74,75,76,77,78,79],
+        [80,81,82,83,84,85,86,87,88,89,90]
+    ];
+    const shuffled = colPools.map(pool => {
+        const arr = [...pool];
+        for (let i = arr.length-1; i > 0; i--) { const j = Math.floor(rand()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+        return arr;
+    });
+    const tickets = Array.from({length:6}, () => ({ grid: Array.from({length:3}, () => Array(9).fill(null)), nums: [] }));
+    const matrix = genMatrixS(rand, shuffled.map(p=>p.length));
+    const ptrs = Array(9).fill(0);
+    for (let r = 0; r < 18; r++) {
+        const ti = Math.floor(r/3), ri = r%3;
+        for (let c = 0; c < 9; c++) {
+            if (matrix[r][c]) { const n = shuffled[c][ptrs[c]++]; tickets[ti].grid[ri][c]=n; tickets[ti].nums.push(n); }
+        }
+    }
+    return tickets;
+}
+
+function genMatrixS(rand, colCounts) {
+    const mat = Array.from({length:18}, ()=>Array(9).fill(false));
+    const rem = [...colCounts];
+    for (let r = 0; r < 18; r++) {
+        const rowsLeft = 18-r, needFill = 5, chosen = [];
+        const cols = Array.from({length:9},(_,i)=>i);
+        for (let i=cols.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[cols[i],cols[j]]=[cols[j],cols[i]];}
+        for (const c of cols) if(rem[c]>=rowsLeft&&!chosen.includes(c)) chosen.push(c);
+        const rest = cols.filter(c=>!chosen.includes(c)&&rem[c]>0);
+        for (let i=rest.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[rest[i],rest[j]]=[rest[j],rest[i]];}
+        for (const c of rest) { if(chosen.length>=needFill) break; if(rem[c]>0) chosen.push(c); }
+        for (let i=0;i<Math.min(needFill,chosen.length);i++){mat[r][chosen[i]]=true;rem[chosen[i]]--;}
+    }
+    return mat;
+}
+
+let allSetsS = null;
+function getAllSetsS() {
+    if (allSetsS) return allSetsS;
+    allSetsS = [];
+    for (let s = 1; s <= TOTAL_SETS_S; s++) allSetsS.push(generateSetS(s));
+    return allSetsS;
+}
+
+function getTNOS(setNo, ti) { return (setNo-1)*TICKETS_PER_S + ti + 1; }
+function getSeatS(setNo)    { return `N${String(setNo).padStart(3,'0')}`; }
+
+function checkWinsS(nums, grid, called) {
+    const hit = n => called.includes(n);
+    const wins = [];
+    if (nums.every(hit)) wins.push('Full House');
+    const top = grid[0].filter(n=>n!==null); if(top.length>0&&top.every(hit)) wins.push('Top Line');
+    const mid = grid[1].filter(n=>n!==null); if(mid.length>0&&mid.every(hit)) wins.push('Mid Line');
+    const bot = grid[2].filter(n=>n!==null); if(bot.length>0&&bot.every(hit)) wins.push('Bot Line');
+    const corners=[grid[0].find(n=>n!==null),[...grid[0]].reverse().find(n=>n!==null),grid[2].find(n=>n!==null),[...grid[2]].reverse().find(n=>n!==null)].filter(Boolean);
+    if([...new Set(corners)].length>=4&&[...new Set(corners)].every(hit)) wins.push('Corner');
+    const hitCnt = nums.filter(hit).length;
+    if(hitCnt>=7&&!wins.includes('Full House')) wins.push('Quick 7');
+    if(hitCnt>=5&&!wins.includes('Full House')&&!wins.includes('Quick 7')) wins.push('Early 5');
+    return wins;
+}
+
+let sheetCurrentResult = null; // null = show default sets
+
+window.openSheet = function() {
+    document.getElementById('sheetPanel').classList.add('open');
+    // first open: show first 5 sets
+    if (!sheetCurrentResult) renderSheetTickets(null);
+    // sheet open হলে search input এ focus দাও
+    setTimeout(() => {
+        const inp = document.getElementById('sheetSearchInput');
+        if (inp) inp.focus();
+    }, 350);
+};
+window.closeSheet = function() {
+    document.getElementById('sheetPanel').classList.remove('open');
+};
+
+window.doSheetSearch = function() {
+    const val = document.getElementById('sheetSearchInput').value.trim().toUpperCase();
+    if (!val) { renderSheetTickets(null); return; }
+
+    const sets = getAllSetsS();
+    let result = [];
+
+    const numQ = parseInt(val);
+    if (!isNaN(numQ) && numQ >= 1 && numQ <= TOTAL_SETS_S * TICKETS_PER_S) {
+        const setNo = Math.ceil(numQ / TICKETS_PER_S);
+        sets[setNo-1].forEach((t,ti) => result.push({setNo, ti, grid:t.grid, nums:t.nums}));
+    }
+
+    const seatM = val.match(/N(\d+)/);
+    if (seatM) {
+        const setNo = parseInt(seatM[1]);
+        if (setNo>=1 && setNo<=TOTAL_SETS_S) {
+            result = [];
+            sets[setNo-1].forEach((t,ti) => result.push({setNo, ti, grid:t.grid, nums:t.nums}));
+        }
+    }
+
+    sheetCurrentResult = result.length > 0 ? result : [];
+    renderSheetTickets(sheetCurrentResult);
+};
+
+function renderSheetTickets(list) {
+    const body = document.getElementById('sheetBody');
+
+    // Build list: null → first 5 sets default
+    const items = list !== null ? list : (() => {
+        const sets = getAllSetsS(), out = [];
+        for (let s = 1; s <= 5; s++) sets[s-1].forEach((t,ti) => out.push({setNo:s,ti,grid:t.grid,nums:t.nums}));
+        return out;
+    })();
+
+    if (items.length === 0) {
+        body.innerHTML = '<div class="s-no-result">🔍 কোনো টিকিট পাওয়া যায়নি</div>';
+        renderSheetDivs(body);
+        return;
+    }
+
+    let html = '';
+    items.forEach(item => {
+        const { setNo, ti, grid, nums } = item;
+        const tno  = getTNOS(setNo, ti);
+        const seat = getSeatS(setNo);
+        const wins = checkWinsS(nums, grid, calledNums);
+        const hasBadge = wins.length > 0;
+        const badges = wins.map(w=>`<span class="s-win-badge">🏆${w}</span>`).join('');
+
+        let cellsHtml = '';
+        grid.forEach(row => row.forEach(cell => {
+            if (cell===null) cellsHtml += '<div class="s-cell empty"></div>';
+            else cellsHtml += `<div class="s-cell${calledNums.includes(cell)?' hit':''}">${cell}</div>`;
+        }));
+
+        html += `
+        <div class="s-ticket-block">
+            <div class="s-ticket-header${hasBadge?' has-win':''}">
+                <span>${tno} by সীট- ${seat}${badges}</span>
+            </div>
+            <div class="s-ticket-grid">${cellsHtml}</div>
+        </div>`;
+    });
+
+    body.innerHTML = html;
+
+    // Divident list নিচে
+    renderSheetDivs(body);
+}
+
+function renderSheetDivs(body) {
+    const keyMap = {
+        'fullhouse':'First Full House','bottomline':'Bottom Line',
+        'middleline':'Middle Line','topline':'Top Line',
+        'corner':'House Corner','quick7':'Quick 7','earlyfive':'Early Five'
+    };
+    let divHtml = '<div class="s-div-title">DIVIDENT LIST</div>';
+    for (const [key, name] of Object.entries(keyMap)) {
+        const w = winners[key];
+        let wHtml = '';
+        if (w) {
+            wHtml = w.count && w.count>1
+                ? `<div class="s-div-winner">${w.count} জন উইনার: ${w.all}</div>`
+                : `<div class="s-div-winner">TNO:${w.tno} (সীট- ${w.seat})</div>`;
+        }
+        divHtml += `<div class="s-div-item"><div class="s-div-type">${name}</div>${wHtml}<button class="s-view-btn" onclick="showModal('${key}')">VIEW</button></div>`;
+    }
+    body.insertAdjacentHTML('beforeend', divHtml);
+}
+
+// called nums update হলে sheet ও refresh করো
+function refreshSheetIfOpen() {
+    if (document.getElementById('sheetPanel').classList.contains('open')) {
+        renderSheetTickets(sheetCurrentResult);
+    }
+}
+
+// ===== AUTO WINNER DETECTION ENGINE =====
+// 100 সেট × 6 টিকিট = 600 টিকিট
+// প্রতিটি নতুন call এর পরে সব টিকিট চেক করে winner খোঁজে
+
+const TOTAL_SETS_W   = 100;
+const TICKETS_PER_W  = 6;
+
+// Seeded random — sheet.html এর মতোই একই algorithm
+function seededRandW(seed) {
+    let s = seed;
+    return function() {
+        s = (s * 1664525 + 1013904223) & 0xffffffff;
+        return (s >>> 0) / 0xffffffff;
+    };
+}
+
+// 100 সেটের সব টিকিট pre-generate করে cache করো
+let allSetsCache = null;
+
+function getAllSets() {
+    if (allSetsCache) return allSetsCache;
+    allSetsCache = [];
+    for (let s = 1; s <= TOTAL_SETS_W; s++) {
+        allSetsCache.push(generateSetW(s));
+    }
+    return allSetsCache;
+}
+
+function generateSetW(setNo) {
+    const rand = seededRandW(setNo * 999983 + 7);
+    const colPools = [
+        [1,2,3,4,5,6,7,8,9],
+        [10,11,12,13,14,15,16,17,18,19],
+        [20,21,22,23,24,25,26,27,28,29],
+        [30,31,32,33,34,35,36,37,38,39],
+        [40,41,42,43,44,45,46,47,48,49],
+        [50,51,52,53,54,55,56,57,58,59],
+        [60,61,62,63,64,65,66,67,68,69],
+        [70,71,72,73,74,75,76,77,78,79],
+        [80,81,82,83,84,85,86,87,88,89,90]
+    ];
+    const shuffled = colPools.map(pool => {
+        const arr = [...pool];
+        for (let i = arr.length-1; i > 0; i--) {
+            const j = Math.floor(rand() * (i+1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    });
+    const tickets = Array.from({length: 6}, () => ({
+        grid: Array.from({length: 3}, () => Array(9).fill(null)),
+        nums: []
+    }));
+    const rowColMatrix = generateRowColMatrixW(rand, shuffled.map(p=>p.length));
+    const colPointers = Array(9).fill(0);
+    for (let r = 0; r < 18; r++) {
+        const ticketIdx = Math.floor(r / 3);
+        const rowIdx    = r % 3;
+        const ticket    = tickets[ticketIdx];
+        for (let c = 0; c < 9; c++) {
+            if (rowColMatrix[r][c]) {
+                const num = shuffled[c][colPointers[c]++];
+                ticket.grid[rowIdx][c] = num;
+                ticket.nums.push(num);
+            }
+        }
+    }
+    return tickets;
+}
+
+function generateRowColMatrixW(rand, colCounts) {
+    const matrix = Array.from({length: 18}, () => Array(9).fill(false));
+    const colRemaining = [...colCounts];
+    for (let r = 0; r < 18; r++) {
+        const rowsLeft = 18 - r;
+        const needFill = 5;
+        const chosen = [];
+        const cols = Array.from({length: 9}, (_, i) => i);
+        for (let i = cols.length-1; i > 0; i--) {
+            const j = Math.floor(rand() * (i+1));
+            [cols[i], cols[j]] = [cols[j], cols[i]];
+        }
+        for (const c of cols) {
+            if (colRemaining[c] >= rowsLeft && !chosen.includes(c)) chosen.push(c);
+        }
+        const remaining = cols.filter(c => !chosen.includes(c) && colRemaining[c] > 0);
+        for (let i = remaining.length-1; i > 0; i--) {
+            const j = Math.floor(rand() * (i+1));
+            [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+        }
+        for (const c of remaining) {
+            if (chosen.length >= needFill) break;
+            if (colRemaining[c] > 0) chosen.push(c);
+        }
+        for (let i = 0; i < Math.min(needFill, chosen.length); i++) {
+            matrix[r][chosen[i]] = true;
+            colRemaining[chosen[i]]--;
+        }
+    }
+    return matrix;
+}
+
+function getTNOW(setNo, ticketIdx) {
+    return (setNo - 1) * TICKETS_PER_W + ticketIdx + 1;
+}
+function getSeatW(setNo) {
+    return `N${String(setNo).padStart(3, '0')}`;
+}
+
+// Prize types এবং check functions
+const PRIZE_CHECKS = {
+    'quick7': (nums, grid, called) => {
+        const hitCount = nums.filter(n => called.includes(n)).length;
+        return hitCount >= 7;
+    },
+    'earlyfive': (nums, grid, called) => {
+        const hitCount = nums.filter(n => called.includes(n)).length;
+        return hitCount >= 5;
+    },
+    'topline': (nums, grid, called) => {
+        const topNums = grid[0].filter(n => n !== null);
+        return topNums.length > 0 && topNums.every(n => called.includes(n));
+    },
+    'middleline': (nums, grid, called) => {
+        const midNums = grid[1].filter(n => n !== null);
+        return midNums.length > 0 && midNums.every(n => called.includes(n));
+    },
+    'bottomline': (nums, grid, called) => {
+        const botNums = grid[2].filter(n => n !== null);
+        return botNums.length > 0 && botNums.every(n => called.includes(n));
+    },
+    'corner': (nums, grid, called) => {
+        const corners = [
+            grid[0].find(n => n !== null),
+            [...grid[0]].reverse().find(n => n !== null),
+            grid[2].find(n => n !== null),
+            [...grid[2]].reverse().find(n => n !== null)
+        ].filter(Boolean);
+        const unique = [...new Set(corners)];
+        return unique.length >= 4 && unique.every(n => called.includes(n));
+    },
+    'fullhouse': (nums, grid, called) => {
+        return nums.every(n => called.includes(n));
+    }
+};
+
+// Winner detection — নতুন number call হলে এই function চলে
+let lastCheckedCount = 0;
+let winnerDetectionRound = 0;
+
+async function detectWinners(called, currentWinners, curRound) {
+    if (called.length === 0) return;
+    // Same number count হলে আবার check করার দরকার নেই
+    if (called.length === lastCheckedCount && curRound === winnerDetectionRound) return;
+    lastCheckedCount = called.length;
+    winnerDetectionRound = curRound;
+
+    const sets = getAllSets();
+    const newWinnersToSet = {};
+
+    for (const [prizeKey, checkFn] of Object.entries(PRIZE_CHECKS)) {
+        // এই prize এ already winner আছে? → skip
+        if (currentWinners[prizeKey]) continue;
+
+        const simultaneousWinners = [];
+
+        for (let s = 0; s < TOTAL_SETS_W; s++) {
+            const setNo = s + 1;
+            for (let ti = 0; ti < TICKETS_PER_W; ti++) {
+                const ticket = sets[s][ti];
+                if (checkFn(ticket.nums, ticket.grid, called)) {
+                    simultaneousWinners.push({
+                        tno:  getTNOW(setNo, ti),
+                        seat: getSeatW(setNo),
+                        setNo, ticketIdx: ti
+                    });
+                }
+            }
+        }
+
+        if (simultaneousWinners.length > 0) {
+            // একাধিক simultaneous winner সবাই জিতবে
+            // Firebase এ array হিসেবে store করো (প্রথম winner প্রধান)
+            newWinnersToSet[prizeKey] = {
+                tno:   simultaneousWinners.map(w => w.tno).join(', '),
+                seat:  simultaneousWinners[0].seat,
+                time:  new Date().toLocaleTimeString('bn-BD'),
+                count: simultaneousWinners.length,
+                all:   simultaneousWinners.map(w => `TNO:${w.tno} সীট-${w.seat}`).join(' | ')
+            };
+        }
+    }
+
+    // নতুন winner পাওয়া গেলে Firebase এ লিখি
+    if (Object.keys(newWinnersToSet).length > 0) {
+        const { update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+        const updates = {};
+        for (const [key, val] of Object.entries(newWinnersToSet)) {
+            updates[`game/winners/${key}`] = val;
+        }
+        try {
+            await update(ref(database, '/'), updates);
+        } catch(e) {
+            console.warn('Winner write error:', e);
+        }
+    }
 }
 
 // ===== VOICE =====
@@ -1012,12 +1512,161 @@ function speak(num) {
 }
 
 // ===== MODAL =====
-window.showModal = function(key) {
-    const w = winners[key];
-    document.getElementById('modalContent').innerHTML = w
-        ? `<h2 style="color:#fff;text-align:center;margin:10px 0;">WINNER<br>TNO: ${w.tno}<br>Seat: ${w.seat}</h2>`
-        : `<h2 style="color:#fff;text-align:center;margin:30px 0;">No Winner Yet</h2>`;
-    document.getElementById('modalOverlay').classList.add('active');
+
+// একটি ticket grid HTML তৈরি করে
+function buildTicketHtml(tnoLabel, grid, calledSet) {
+    let html = `<div style="margin-bottom:12px;">
+        <div style="background:#c2185b;color:#fff;font-size:11px;font-weight:900;
+            padding:3px 10px;border-radius:4px 4px 0 0;display:inline-block;">
+            ${tnoLabel}
+        </div>
+        <div style="border:3px solid #c2185b;border-radius:0 6px 6px 6px;
+            padding:4px;background:rgba(255,255,255,0.06);
+            display:grid;grid-template-columns:repeat(9,1fr);gap:3px;">`;
+    grid.forEach(row => {
+        const cells = row.length===9 ? row : [...row, ...Array(9-row.length).fill(null)];
+        cells.forEach(num => {
+            if (!num) {
+                html += `<div style="background:rgba(255,255,255,0.07);border-radius:4px;aspect-ratio:1;"></div>`;
+            } else {
+                const hit = calledSet.has(Number(num));
+                html += `<div style="
+                    background:${hit?'#8B0000':'#fff'};
+                    color:${hit?'#fff':'#111'};
+                    border:${hit?'2px solid #ffcc00':'1px solid #bbb'};
+                    border-radius:4px;aspect-ratio:1;
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:11px;font-weight:900;position:relative;">
+                    ${num}
+                    ${hit?`<div style="position:absolute;top:50%;left:0;right:0;height:2px;
+                        background:rgba(255,204,0,0.85);transform:translateY(-50%);"></div>`:''}
+                </div>`;
+            }
+        });
+    });
+    html += `</div></div>`;
+    return html;
+}
+
+window.showModal = async function(key) {
+    const w       = winners[key];
+    const overlay = document.getElementById('modalOverlay');
+    const content = document.getElementById('modalContent');
+
+    // Winner নেই → "No Winner Yet"
+    if (!w) {
+        content.innerHTML = `<h2 style="color:#fff;text-align:center;margin:30px 0;">No Winner Yet</h2>`;
+        overlay.classList.add('active');
+        return;
+    }
+
+    // কোন seat জিতেছে সেটা বের করো
+    // w.seat = "N050" বা w.all = "TNO:298 সীট-N050 | ..." থেকে seat list
+    let seatNo = null;
+    if (w.seat) {
+        // "N050" → 50
+        seatNo = parseInt(w.seat.replace(/[^0-9]/g,''), 10);
+    }
+
+    // Loading দেখাও
+    const wonAt = w.calledAt || w.time || '?';
+    const seatLabel = w.seat || '?';
+    content.innerHTML = `
+        <div style="text-align:center;padding:12px 0 6px;">
+            <div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:1px;">WON AT ${wonAt}</div>
+            <div style="margin:8px 0;">
+                <span style="background:#c2185b;color:#fff;padding:4px 16px;border-radius:5px;font-size:13px;font-weight:900;">সীট- ${seatLabel}</span>
+                &nbsp;
+                <span style="background:#c2185b;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:900;">WINNER</span>
+            </div>
+            <div style="color:#aaa;font-size:13px;margin-top:8px;">⏳ টিকিট লোড হচ্ছে...</div>
+        </div>`;
+    overlay.classList.add('active');
+
+    const calledSet = new Set(calledNums.map(Number));
+
+    // একাধিক winner হলে সব seat এর TNO list বানাও
+    let tnoList = [];
+    if (w.count && w.count > 1 && w.all) {
+        // "TNO:298 সীট-N050 | TNO:312 সীট-N052 | ..."
+        const matches = w.all.matchAll(/TNO[:\s]*(\d+)\s*সীট[-\s]*(\w+)/g);
+        for (const m of matches) {
+            tnoList.push({ tno: m[1], seat: m[2] });
+        }
+        // fallback: শুধু seat দিয়ে match
+        if (tnoList.length === 0) {
+            const matches2 = w.all.matchAll(/TNO:(\d+)/g);
+            for (const m of matches2) tnoList.push({ tno: m[1], seat: '?' });
+        }
+    } else if (w.tno) {
+        tnoList = [{ tno: w.tno, seat: w.seat || '?' }];
+    }
+
+    // Seat থেকে সব 6 ticket (local generation দিয়ে) দেখাও
+    // সাথে Firestore এর ticket ও দেখাবো যদি match করে
+    if (!seatNo || isNaN(seatNo)) {
+        // শুধু Firestore থেকে যা আছে
+        if (tnoList.length === 0) {
+            content.innerHTML = `<h2 style="color:#fff;text-align:center;margin:30px 0;">টিকিট পাওয়া যায়নি</h2>`;
+            return;
+        }
+    }
+
+    try {
+        let allTicketsHtml = '';
+
+        if (seatNo && !isNaN(seatNo)) {
+            // Local generation: setNo = seatNo, tickets[0..5]
+            const setTickets = generateSetS(seatNo);
+            const calledArr  = calledNums.map(Number);
+
+            setTickets.forEach((tk, ti) => {
+                const tno = getTNOS(seatNo, ti);
+                const wins = checkWinsS(tk.nums, tk.grid, calledArr);
+                const winsLabel = wins.length > 0
+                    ? `<span style="background:#ffcc00;color:#111;font-size:10px;font-weight:900;
+                        padding:1px 6px;border-radius:3px;margin-left:6px;">${wins.join(', ')}</span>`
+                    : '';
+                allTicketsHtml += buildTicketHtml(
+                    `TNO: ${tno} ${winsLabel}`,
+                    tk.grid,
+                    calledSet
+                );
+            });
+        } else {
+            // Firestore থেকে
+            for (const item of tnoList.slice(0, 15)) {
+                try {
+                    const snap = await getDoc(doc(h24db, 'tickets', String(item.tno)));
+                    if (snap.exists()) {
+                        const td   = snap.data();
+                        const rows = td.rows || [td.row1||[], td.row2||[], td.row3||[]];
+                        allTicketsHtml += buildTicketHtml(`TNO: ${item.tno}`, rows, calledSet);
+                    }
+                } catch(e2) {}
+            }
+        }
+
+        content.innerHTML = `
+            <div style="text-align:center;padding:10px 0 4px;">
+                <div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:1px;">WON AT ${wonAt}</div>
+                <div style="margin:7px 0 10px;">
+                    <span style="background:#c2185b;color:#fff;padding:4px 16px;border-radius:5px;font-size:13px;font-weight:900;">সীট- ${seatLabel}</span>
+                    &nbsp;
+                    <span style="background:#c2185b;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:900;">WINNER</span>
+                </div>
+            </div>
+            <div style="max-height:62vh;overflow-y:auto;padding:0 2px;">
+                ${allTicketsHtml || `<p style="color:#888;text-align:center;margin:20px 0;">কোনো টিকিট পাওয়া যায়নি</p>`}
+            </div>`;
+    } catch(e) {
+        content.innerHTML = `
+            <div style="text-align:center;padding:20px;">
+                <div style="color:#fff;font-size:18px;font-weight:900;">WON AT ${wonAt}</div>
+                <div style="color:#ffff00;margin:8px 0;">সীট- ${seatLabel}</div>
+                <div style="color:#ff6a6a;font-size:13px;margin-top:10px;">⚠️ টিকিট লোড ব্যর্থ হয়েছে</div>
+            </div>`;
+    }
 };
 window.closeModal = function() { document.getElementById('modalOverlay').classList.remove('active'); };
 
