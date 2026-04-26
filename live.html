@@ -207,13 +207,17 @@
 
         /* ===== RECENT BALLS ===== */
         .recent-balls {
-            display: flex; justify-content: center;
-            gap: 8px; padding: 14px; flex-wrap: wrap; min-height: 64px;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+            padding: 8px 10px;
+            max-width: 460px;
+            margin: 0 auto;
         }
         .ball {
-            width: 40px; height: 40px; background: #e9a1c0; color: #000;
+            width: 100%; aspect-ratio: 1; background: #e9a1c0; color: #000;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: 900; box-shadow: 2px 2px 6px rgba(0,0,0,0.35);
+            font-size: 11px; font-weight: 900; box-shadow: 2px 2px 4px rgba(0,0,0,0.35);
             animation: ballEntrance 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         @keyframes ballEntrance {
@@ -488,11 +492,12 @@ onAuthStateChanged(h24Auth, (user) => {
 // ══════════════════════════════════════════════════════
 const PRIZE_LABELS = {
     fullhouse:   'Full House',
+    corner:      'Corner',
     earlyfive:   'Early Five',
+    quick7:      'Quick 7',
     topline:     'Top Line',
     middleline:  'Middle Line',
-    bottomline:  'Bottom Line',
-    corner:      'Corner'
+    bottomline:  'Bottom Line'
 };
 
 let winnerListenerActive = false;
@@ -950,7 +955,7 @@ function updateUI() {
     }
     const rb = document.getElementById('recentBalls');
     rb.innerHTML = '';
-    [...calledNums].reverse().slice(0, 10).forEach(num => {
+    [...calledNums].slice(-40).forEach(num => {
         const ball = document.createElement('div');
         ball.className  = 'ball';
         ball.textContent = num;
@@ -975,7 +980,7 @@ function triggerBubble(num) {
 
 // ===== DIVIDEND LIST =====
 function renderDivs() {
-    const list = ['Full House', 'Early Five', 'Top Line', 'Middle Line', 'Bottom Line', 'Corner'];
+    const list = ['Full House', 'Corner', 'Early Five', 'Quick 7', 'Top Line', 'Middle Line', 'Bottom Line'];
     const cont = document.getElementById('divList');
     cont.innerHTML = '';
     list.forEach(name => {
