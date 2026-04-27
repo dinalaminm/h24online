@@ -12,7 +12,7 @@
         :root {
             --accent-yellow: #ffff00;
             --accent-red: #ff0000;
-            --accent-pink: #c2185b;
+            --accent-pink: #A22060;
             --accent-orange: #ff6a00;
             --accent-green: #00ff00;
         }
@@ -261,7 +261,7 @@
         }
         #sheetPanel.open { transform: translateY(0); }
         .sheet-topbar {
-            background: rgba(0,0,0,0.88); border-bottom: 3px solid #c2185b;
+            background: rgba(0,0,0,0.88); border-bottom: 3px solid #A22060;
             padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
         }
         .sheet-title { font-size: 17px; font-weight: 900; color: #ffd700; letter-spacing: 2px; }
@@ -283,11 +283,11 @@
         .sheet-body { flex: 1; overflow-y: auto; padding: 8px 10px 20px; -webkit-overflow-scrolling: touch; }
         .s-ticket-block { margin-bottom: 12px; }
         .s-ticket-header {
-            background: #c2185b; color: #fff; font-size: 14px; font-weight: 900;
+            background: #A22060; color: #fff; font-size: 14px; font-weight: 900;
             padding: 7px 12px; border-radius: 7px 7px 0 0;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .s-ticket-header.has-win { background: linear-gradient(90deg,#b71c1c,#c2185b); }
+        .s-ticket-header.has-win { background: linear-gradient(90deg,#b71c1c,#A22060); }
         .s-win-badge { font-size: 9px; background: #ffff00; color: #000; padding: 2px 6px; border-radius: 8px; font-weight: 900; margin-left: 5px; }
         .s-ticket-grid {
             display: grid; grid-template-columns: repeat(9,1fr);
@@ -299,58 +299,67 @@
             text-align: center; padding: 9px 0; display: flex; align-items: center; justify-content: center; min-height: 38px;
         }
         .s-cell.empty { background: #f0f0f0; }
-        .s-cell.hit { background: #c2185b !important; color: #fff !important; }
+        .s-cell.hit { background: #A22060 !important; color: #fff !important; }
         .s-div-title { color: #fff; font-size: 16px; font-weight: 900; text-align: center; letter-spacing: 3px; padding: 14px 0 6px; }
         .s-div-item { background: rgba(0,10,50,0.8); border-bottom: 1px solid #333; padding: 10px 12px; }
         .s-div-type { font-size: 17px; font-weight: 700; color: #fff; }
         .s-div-winner { color: #00ff00; font-size: 12px; font-weight: 700; margin-top: 3px; }
-        .s-view-btn { display: block; width: 100%; background: #c2185b; color: #fff; border: none; padding: 8px; border-radius: 5px; font-weight: 700; cursor: pointer; margin-top: 6px; font-size: 13px; }
+        .s-view-btn { display: block; width: 100%; background: #A22060; color: #fff; border: none; padding: 8px; border-radius: 5px; font-weight: 700; cursor: pointer; margin-top: 6px; font-size: 13px; }
         .s-no-result { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.3); font-size: 13px; font-weight: 700; }
         .s-loading { text-align: center; padding: 30px; color: #ffd700; font-size: 13px; font-weight: 700; animation: blink 1s infinite; }
 
         /* ===== MY TICKETS ===== */
         .mt-header {
-            background: rgba(0,0,0,0.6);
-            padding: 6px 10px;
-            font-size: 11px; font-weight: 900; color: #ffd700;
+            background: rgba(0,0,0,0.7);
+            padding: 7px 12px;
+            font-size: 12px; font-weight: 900; color: #ffd700;
             letter-spacing: 2px; text-transform: uppercase;
-            border-bottom: 2px solid #c2185b;
-        }
-        .mt-seat-label {
-            text-align: center;
-            font-size: 10px; font-weight: 900; color: #ffd700;
-            letter-spacing: 1px; padding: 2px 0 2px;
+            border-bottom: 2px solid #ffd700;
         }
         .mt-scroll {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            padding: 4px 6px 6px;
+            gap: 8px;
+            padding: 6px 8px 8px;
         }
-        .mt-ticket-wrap { width: 100%; }
+        .mt-ticket-wrap {
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
         .mt-tno {
-            background: #c2185b; color: #fff;
-            font-size: 10px; font-weight: 900;
-            padding: 3px 8px; border-radius: 4px 4px 0 0;
-            text-align: left;
-            display: flex; align-items: center; gap: 4px;
+            color: #fff;
+            font-size: 12px; font-weight: 900;
+            padding: 5px 10px;
+            display: flex; align-items: center; gap: 6px;
+            background: #A22060;
         }
         .mt-grid {
-            display: grid; grid-template-columns: repeat(9,1fr);
-            gap: 2px; border: 2px solid #c2185b; border-top: none;
-            border-radius: 0 0 4px 4px; overflow: hidden;
-            background: #c2185b;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 3px;
+            background: #ffd700;
+            border: 3px solid #ffd700;
+            border-top: 3px solid #ffd700;
+            margin-top: 3px;
         }
         .mt-cell {
-            background: #fff9f0; color: #111;
-            font-size: 11px; font-weight: 900;
-            text-align: center; padding: 0;
+            background: #fff;
+            color: #111;
+            font-size: 13px; font-weight: 900;
             display: flex; align-items: center; justify-content: center;
             aspect-ratio: 1;
+            border-radius: 2px;
         }
-        .mt-cell.mt-empty { background: #e8e8e8; color: transparent; }
-        .mt-cell.mt-hit   { background: #8B0000 !important; color: #fff !important; }
-        .mt-cell.mt-win   { background: #ffcc00 !important; color: #000 !important; }
+        .mt-cell.mt-empty {
+            background: #f0f0f0;
+            color: transparent;
+        }
+        .mt-cell.mt-hit {
+            background: #A22060 !important;
+            color: #fff !important;
+        }
         .mt-no-ticket {
             text-align: center; padding: 10px;
             color: rgba(255,255,255,0.4); font-size: 12px;
@@ -1156,13 +1165,12 @@ function renderDivs() {
 // Seat পরিবর্তন করে দেখার জন্য — সীট নম্বর (1-100)
 let myViewSeat = 1; // default সীট ১
 
-// একটি ticket render করো (ছোট সাইজ)
-function buildSmallTicketHtml(grid, calledSet, winKeys) {
-    const prizeKeys = new Set(winKeys || []);
+// একটি ticket render করো — ছবির মতো হলুদ border, সাদা cell, গোলাপি hit
+function buildSmallTicketHtml(grid, calledSet) {
     let html = '<div class="mt-grid">';
-    grid.forEach((row, ri) => {
+    grid.forEach(row => {
         const cells = row.length === 9 ? row : [...row, ...Array(9 - row.length).fill(null)];
-        cells.forEach((num, ci) => {
+        cells.forEach(num => {
             if (!num) {
                 html += '<div class="mt-cell mt-empty"></div>';
             } else {
@@ -1252,17 +1260,36 @@ function renderMyTickets() {
         <div class="mt-header">🎫 সীট- ${seat} এর টিকিট</div>
         <div class="mt-scroll">`;
 
+    // Prize badge রঙ
+    const BADGE_COLOR = {
+        fullhouse:  {bg:'#e53935',txt:'#fff'},
+        topline:    {bg:'#1e88e5',txt:'#fff'},
+        middleline: {bg:'#8e24aa',txt:'#fff'},
+        bottomline: {bg:'#fb8c00',txt:'#fff'},
+        corner:     {bg:'#00897b',txt:'#fff'},
+        quick7:     {bg:'#fdd835',txt:'#333'},
+        earlyfive:  {bg:'#26c6da',txt:'#fff'},
+    };
+
     tickets.forEach((tk, ti) => {
-        const tno   = getTNOS(setNo, ti);
-        const wins  = checkWinsFull(tk.nums, tk.grid, calledNums, alreadyWon);
-        const badges = wins.map(w =>
-            `<span style="background:#ffcc00;color:#000;font-size:7px;font-weight:900;
-                padding:1px 4px;border-radius:2px;margin-left:2px;">${PRIZE_NAME[w]||w}</span>`
-        ).join('');
+        const tno  = getTNOS(setNo, ti);
+        const wins = checkWinsFull(tk.nums, tk.grid, calledNums, alreadyWon);
+
+        const badges = wins.map(w => {
+            const bc = BADGE_COLOR[w] || {bg:'#fff',txt:'#000'};
+            return `<span style="background:${bc.bg};color:${bc.txt};
+                font-size:9px;font-weight:900;padding:2px 7px;
+                border-radius:10px;letter-spacing:0.3px;
+                box-shadow:0 1px 3px rgba(0,0,0,0.3);">
+                ${PRIZE_NAME[w]||w}</span>`;
+        }).join('');
 
         html += `<div class="mt-ticket-wrap">
-            <div class="mt-tno">TNO:${tno}${badges ? ' '+badges : ''}</div>
-            ${buildSmallTicketHtml(tk.grid, calledSet, wins)}
+            <div class="mt-tno">
+                <span style="font-size:11px;opacity:0.9;">${tno} by সীট- ${seat}</span>
+                ${badges}
+            </div>
+            ${buildSmallTicketHtml(tk.grid, calledSet)}
         </div>`;
     });
 
@@ -1681,11 +1708,11 @@ function speak(num) {
 // একটি ticket grid HTML তৈরি করে
 function buildTicketHtml(tnoLabel, grid, calledSet) {
     let html = `<div style="margin-bottom:12px;">
-        <div style="background:#c2185b;color:#fff;font-size:11px;font-weight:900;
+        <div style="background:#A22060;color:#fff;font-size:11px;font-weight:900;
             padding:3px 10px;border-radius:4px 4px 0 0;display:inline-block;">
             ${tnoLabel}
         </div>
-        <div style="border:3px solid #c2185b;border-radius:0 6px 6px 6px;
+        <div style="border:3px solid #A22060;border-radius:0 6px 6px 6px;
             padding:4px;background:rgba(255,255,255,0.06);
             display:grid;grid-template-columns:repeat(9,1fr);gap:3px;">`;
     grid.forEach(row => {
@@ -1740,9 +1767,9 @@ window.showModal = async function(key) {
         <div style="text-align:center;padding:12px 0 6px;">
             <div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:1px;">WON AT ${wonAt}</div>
             <div style="margin:8px 0;">
-                <span style="background:#c2185b;color:#fff;padding:4px 16px;border-radius:5px;font-size:13px;font-weight:900;">সীট- ${seatLabel}</span>
+                <span style="background:#A22060;color:#fff;padding:4px 16px;border-radius:5px;font-size:13px;font-weight:900;">সীট- ${seatLabel}</span>
                 &nbsp;
-                <span style="background:#c2185b;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:900;">WINNER</span>
+                <span style="background:#A22060;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:900;">WINNER</span>
             </div>
             <div style="color:#aaa;font-size:13px;margin-top:8px;">⏳ টিকিট লোড হচ্ছে...</div>
         </div>`;
@@ -1817,9 +1844,9 @@ window.showModal = async function(key) {
             <div style="text-align:center;padding:10px 0 4px;">
                 <div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:1px;">WON AT ${wonAt}</div>
                 <div style="margin:7px 0 10px;">
-                    <span style="background:#c2185b;color:#fff;padding:4px 16px;border-radius:5px;font-size:13px;font-weight:900;">সীট- ${seatLabel}</span>
+                    <span style="background:#A22060;color:#fff;padding:4px 16px;border-radius:5px;font-size:13px;font-weight:900;">সীট- ${seatLabel}</span>
                     &nbsp;
-                    <span style="background:#c2185b;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:900;">WINNER</span>
+                    <span style="background:#A22060;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:900;">WINNER</span>
                 </div>
             </div>
             <div style="max-height:62vh;overflow-y:auto;padding:0 2px;">
