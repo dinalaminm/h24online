@@ -308,6 +308,54 @@
         .s-no-result { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.3); font-size: 13px; font-weight: 700; }
         .s-loading { text-align: center; padding: 30px; color: #ffd700; font-size: 13px; font-weight: 700; animation: blink 1s infinite; }
 
+        /* ===== MY TICKETS ===== */
+        .mt-header {
+            background: rgba(0,0,0,0.6);
+            padding: 6px 10px;
+            font-size: 11px; font-weight: 900; color: #ffd700;
+            letter-spacing: 2px; text-transform: uppercase;
+            border-bottom: 2px solid #c2185b;
+        }
+        .mt-seat-label {
+            text-align: center;
+            font-size: 10px; font-weight: 900; color: #ffd700;
+            letter-spacing: 1px; padding: 2px 0 2px;
+        }
+        .mt-scroll {
+            display: flex; gap: 6px; overflow-x: auto;
+            padding: 4px 2px 6px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .mt-scroll::-webkit-scrollbar { display: none; }
+        .mt-ticket-wrap { flex: 0 0 auto; }
+        .mt-tno {
+            background: #c2185b; color: #fff;
+            font-size: 9px; font-weight: 900;
+            padding: 2px 6px; border-radius: 3px 3px 0 0;
+            text-align: center;
+        }
+        .mt-grid {
+            display: grid; grid-template-columns: repeat(9,1fr);
+            gap: 1.5px; border: 2px solid #c2185b; border-top: none;
+            border-radius: 0 0 4px 4px; overflow: hidden;
+            background: #c2185b;
+        }
+        .mt-cell {
+            background: #fff9f0; color: #111;
+            font-size: 8px; font-weight: 900;
+            text-align: center; padding: 0;
+            display: flex; align-items: center; justify-content: center;
+            aspect-ratio: 1; min-width: 20px;
+        }
+        .mt-cell.mt-empty { background: #e8e8e8; color: transparent; }
+        .mt-cell.mt-hit   { background: #8B0000 !important; color: #fff !important; }
+        .mt-cell.mt-win   { background: #ffcc00 !important; color: #000 !important; }
+        .mt-no-ticket {
+            text-align: center; padding: 10px;
+            color: rgba(255,255,255,0.4); font-size: 12px;
+        }
+
         /* ===== HANDRISE ===== */
         .handrise-section {
             margin: 0 10px 80px;
@@ -461,16 +509,8 @@
     <!-- RECENT BALLS -->
     <div class="recent-balls" id="recentBalls"></div>
 
-    <!-- SEARCH INPUT BELOW BALLS -->
-    <div style="padding: 8px 12px 4px;">
-        <input type="text" id="quickSearchInput" readonly
-            placeholder="🔍 Ticket / Set নম্বর সার্চ করুন..."
-            onclick="openSheet()"
-            style="width:100%; padding:11px 16px; background:#fff; color:#333;
-                   border:none; border-radius:8px; font-size:14px; font-weight:700;
-                   outline:none; cursor:pointer; text-align:center; letter-spacing:0.5px;
-                   box-shadow:0 2px 8px rgba(0,0,0,0.3);">
-    </div>
+    <!-- MY TICKETS DISPLAY -->
+    <div id="myTicketsArea" style="padding:6px 8px 0;"></div>
 
     <!-- DIVIDEND LIST -->
     <div class="dividend-section">
@@ -563,7 +603,7 @@ let currentUser   = null;
 let paidPrizeKeys = new Set();
 
 // Background এ user detect করো — redirect নেই
-onAuthStateChanged(h24Auth, (user) => {
+onAuthStateChanged(h24Auth, async (user) => {
     if (!user) return; // login নেই — game দেখাবে, prize পাবে না
     currentUser = user;
     localStorage.setItem('userId', user.uid);
@@ -571,6 +611,22 @@ onAuthStateChanged(h24Auth, (user) => {
         const stored = localStorage.getItem(`paidKeys_${user.uid}`);
         if (stored) paidPrizeKeys = new Set(JSON.parse(stored));
     } catch(e) {}
+
+    // Firestore থেকে user এর seat নাও
+    try {
+        const uSnap = await getDoc(doc(h24db, 'users', user.uid));
+        if (uSnap.exists()) {
+            const ud = uSnap.data();
+            // seat: "N055" বা seatNo: 55
+            if (ud.seat) {
+                const m = String(ud.seat).match(/(\d+)/);
+                if (m) myViewSeat = parseInt(m[1], 10);
+            } else if (ud.seatNo) {
+                myViewSeat = parseInt(ud.seatNo, 10);
+            }
+        }
+    } catch(e) {}
+    renderMyTickets();
     startWinnerListener();
 });
 
@@ -1054,6 +1110,7 @@ function updateUI() {
         rb.appendChild(ball);
     });
     renderDivs();
+    renderMyTickets();
     refreshSheetIfOpen();
 }
 
@@ -1093,6 +1150,124 @@ function renderDivs() {
                 <button class="view-btn" onclick="showModal('${key}')">VIEW</button>
             </div>`;
     });
+}
+
+// ===== MY TICKETS DISPLAY =====
+// Seat পরিবর্তন করে দেখার জন্য — সীট নম্বর (1-100)
+let myViewSeat = 1; // default সীট ১
+
+// একটি ticket render করো (ছোট সাইজ)
+function buildSmallTicketHtml(grid, calledSet, winKeys) {
+    const prizeKeys = new Set(winKeys || []);
+    let html = '<div class="mt-grid">';
+    grid.forEach((row, ri) => {
+        const cells = row.length === 9 ? row : [...row, ...Array(9 - row.length).fill(null)];
+        cells.forEach((num, ci) => {
+            if (!num) {
+                html += '<div class="mt-cell mt-empty"></div>';
+            } else {
+                const hit = calledSet.has(Number(num));
+                html += `<div class="mt-cell${hit ? ' mt-hit' : ''}">${num}</div>`;
+            }
+        });
+    });
+    html += '</div>';
+    return html;
+}
+
+// checkWins — correct winner logic (ছবির reference অনুযায়ী)
+function checkWinsFull(nums, grid, calledArr, alreadyWon) {
+    const hit  = n => calledArr.includes(n);
+    const won  = new Set(alreadyWon || []);
+    const results = [];
+    const hitCnt  = nums.filter(hit).length;
+
+    // ── Early Five: ticket এর যেকোনো ৫টি নম্বর call হলে ──
+    if (!won.has('earlyfive') && hitCnt >= 5) results.push('earlyfive');
+
+    // ── Quick 7: ticket এর যেকোনো ৭টি নম্বর call হলে ──
+    if (!won.has('quick7') && hitCnt >= 7) results.push('quick7');
+
+    // ── Top Line: উপরের সারির সব ৫টি নম্বর call হলে ──
+    const top = grid[0].filter(n => n !== null && n !== 0);
+    if (!won.has('topline') && top.length === 5 && top.every(hit)) results.push('topline');
+
+    // ── Middle Line: মাঝের সারির সব ৫টি নম্বর call হলে ──
+    const mid = grid[1].filter(n => n !== null && n !== 0);
+    if (!won.has('middleline') && mid.length === 5 && mid.every(hit)) results.push('middleline');
+
+    // ── Bottom Line: নিচের সারির সব ৫টি নম্বর call হলে ──
+    const bot = grid[2].filter(n => n !== null && n !== 0);
+    if (!won.has('bottomline') && bot.length === 5 && bot.every(hit)) results.push('bottomline');
+
+    // ── House Corner: Top row এর প্রথম ও শেষ নম্বর + Bottom row এর প্রথম ও শেষ নম্বর ──
+    // (ছবিতে যেমন: top row: 2 ও 30, bottom row: 71 ও 90 — ৪টি কোনার নম্বর)
+    const topRow = grid[0].filter(n => n !== null && n !== 0);
+    const botRow = grid[2].filter(n => n !== null && n !== 0);
+    if (topRow.length >= 2 && botRow.length >= 2) {
+        const c1 = topRow[0];                    // top row প্রথম নম্বর
+        const c2 = topRow[topRow.length - 1];    // top row শেষ নম্বর
+        const c3 = botRow[0];                    // bottom row প্রথম নম্বর
+        const c4 = botRow[botRow.length - 1];    // bottom row শেষ নম্বর
+        const allCorners = [c1, c2, c3, c4];
+        const uniqueCorners = [...new Set(allCorners)];
+        if (!won.has('corner') && uniqueCorners.length === 4 && allCorners.every(hit)) {
+            results.push('corner');
+        }
+    }
+
+    // ── Full House: ticket এর সবকটি ১৫টি নম্বর call হলে ──
+    if (!won.has('fullhouse') && nums.length === 15 && nums.every(hit)) results.push('fullhouse');
+
+    return results;
+}
+
+const PRIZE_NAME = {
+    earlyfive:  'Early Five',
+    quick7:     'Quick 7',
+    topline:    'Top Line',
+    middleline: 'Mid Line',
+    bottomline:  'Bot Line',
+    corner:     'Corner',
+    fullhouse:  'Full House',
+};
+
+function renderMyTickets() {
+    const area = document.getElementById('myTicketsArea');
+    if (!area) return;
+
+    // calledNums থেকে Set তৈরি
+    const calledSet = new Set(calledNums.map(Number));
+    // Firebase winners থেকে কোন prizes ইতিমধ্যে ক্লেম হয়েছে
+    const alreadyWon = Object.keys(winners).filter(k => winners[k]);
+
+    // সীট generate করো
+    const setNo = myViewSeat;
+    if (setNo < 1 || setNo > TOTAL_SETS_S) { area.innerHTML = ''; return; }
+
+    const tickets = generateSetS(setNo);
+    const seat    = getSeatS(setNo);
+
+    let html = `<div style="background:rgba(0,0,0,0.55);border-radius:8px;overflow:hidden;margin-bottom:4px;">
+        <div class="mt-header">🎫 সীট- ${seat} এর টিকিট</div>
+        <div class="mt-scroll">`;
+
+    tickets.forEach((tk, ti) => {
+        const tno   = getTNOS(setNo, ti);
+        const wins  = checkWinsFull(tk.nums, tk.grid, calledNums, alreadyWon);
+        const badges = wins.map(w =>
+            `<span style="background:#ffcc00;color:#000;font-size:7px;font-weight:900;
+                padding:1px 4px;border-radius:2px;margin-left:2px;">${PRIZE_NAME[w]||w}</span>`
+        ).join('');
+
+        html += `<div class="mt-ticket-wrap">
+            <div class="mt-tno">TNO:${tno}${badges ? ' '+badges : ''}</div>
+            ${buildSmallTicketHtml(tk.grid, calledSet, wins)}
+        </div>`;
+    });
+
+    html += `</div></div>`;
+    area.innerHTML = html;
 }
 
 // ===== SHEET PANEL =====
@@ -1158,18 +1333,8 @@ function getTNOS(setNo, ti) { return (setNo-1)*TICKETS_PER_S + ti + 1; }
 function getSeatS(setNo)    { return `N${String(setNo).padStart(3,'0')}`; }
 
 function checkWinsS(nums, grid, called) {
-    const hit = n => called.includes(n);
-    const wins = [];
-    if (nums.every(hit)) wins.push('Full House');
-    const top = grid[0].filter(n=>n!==null); if(top.length>0&&top.every(hit)) wins.push('Top Line');
-    const mid = grid[1].filter(n=>n!==null); if(mid.length>0&&mid.every(hit)) wins.push('Mid Line');
-    const bot = grid[2].filter(n=>n!==null); if(bot.length>0&&bot.every(hit)) wins.push('Bot Line');
-    const corners=[grid[0].find(n=>n!==null),[...grid[0]].reverse().find(n=>n!==null),grid[2].find(n=>n!==null),[...grid[2]].reverse().find(n=>n!==null)].filter(Boolean);
-    if([...new Set(corners)].length>=4&&[...new Set(corners)].every(hit)) wins.push('Corner');
-    const hitCnt = nums.filter(hit).length;
-    if(hitCnt>=7&&!wins.includes('Full House')) wins.push('Quick 7');
-    if(hitCnt>=5&&!wins.includes('Full House')&&!wins.includes('Quick 7')) wins.push('Early 5');
-    return wins;
+    // checkWinsFull এর মতো একই logic — alreadyWon ছাড়া (sheet display এ সব দেখাবে)
+    return checkWinsFull(nums, grid, called, []);
 }
 
 let sheetCurrentResult = null; // null = show default sets
@@ -1237,7 +1402,7 @@ function renderSheetTickets(list) {
         const seat = getSeatS(setNo);
         const wins = checkWinsS(nums, grid, calledNums);
         const hasBadge = wins.length > 0;
-        const badges = wins.map(w=>`<span class="s-win-badge">🏆${w}</span>`).join('');
+        const badges = wins.map(w=>`<span class="s-win-badge">🏆${PRIZE_NAME[w]||w}</span>`).join('');
 
         let cellsHtml = '';
         grid.forEach(row => row.forEach(cell => {
@@ -1620,15 +1785,16 @@ window.showModal = async function(key) {
             const setTickets = generateSetS(seatNo);
             const calledArr  = calledNums.map(Number);
 
+            const alreadyWonKeys = Object.keys(winners).filter(k => winners[k]);
             setTickets.forEach((tk, ti) => {
-                const tno = getTNOS(seatNo, ti);
-                const wins = checkWinsS(tk.nums, tk.grid, calledArr);
+                const tno  = getTNOS(seatNo, ti);
+                const wins = checkWinsFull(tk.nums, tk.grid, calledArr, alreadyWonKeys);
                 const winsLabel = wins.length > 0
-                    ? `<span style="background:#ffcc00;color:#111;font-size:10px;font-weight:900;
-                        padding:1px 6px;border-radius:3px;margin-left:6px;">${wins.join(', ')}</span>`
+                    ? wins.map(w=>`<span style="background:#ffcc00;color:#111;font-size:10px;
+                        font-weight:900;padding:1px 6px;border-radius:3px;margin-left:4px;">${PRIZE_NAME[w]||w}</span>`).join('')
                     : '';
                 allTicketsHtml += buildTicketHtml(
-                    `TNO: ${tno} ${winsLabel}`,
+                    `TNO: ${tno}${winsLabel}`,
                     tk.grid,
                     calledSet
                 );
