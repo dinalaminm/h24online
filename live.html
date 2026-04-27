@@ -347,7 +347,7 @@
         .mt-cell {
             background: #fff;
             color: #111;
-            font-size: 13px; font-weight: 900;
+            font-size: 18px; font-weight: 900;
             display: flex; align-items: center; justify-content: center;
             aspect-ratio: 1;
             border-radius: 2px;
@@ -527,6 +527,26 @@
         <div id="divList"></div>
     </div>
     </div><!-- end gameSection -->
+
+    <!-- GAME OVER OVERLAY -->
+    <div id="gameOverOverlay" style="
+        display:none; position:fixed; inset:0; z-index:9000;
+        background:rgba(0,0,0,0.88);
+        flex-direction:column; align-items:center; justify-content:center;
+        text-align:center; padding:30px;">
+        <div style="font-size:64px;margin-bottom:10px;">🏆</div>
+        <div style="color:#ffd700;font-size:32px;font-weight:900;letter-spacing:2px;margin-bottom:6px;">
+            GAME IS OVER
+        </div>
+        <div style="color:#fff;font-size:16px;margin-bottom:20px;opacity:0.8;">
+            Full House সম্পন্ন হয়েছে!
+        </div>
+        <div id="gameOverWinner" style="background:#A22060;color:#fff;
+            padding:10px 24px;border-radius:8px;font-size:15px;font-weight:900;
+            margin-bottom:24px;"></div>
+        <div style="color:#ccc;font-size:14px;margin-bottom:8px;">পরবর্তী রাউন্ড শুরু হবে</div>
+        <div id="gameOverCountdown" style="color:#ffd700;font-size:36px;font-weight:900;"></div>
+    </div>
 
     <!-- FLOATING SHEET BUTTON -->
     <a href="https://h24online.vercel.app" class="floating-sheet-btn">
@@ -1121,6 +1141,20 @@ function updateUI() {
     renderDivs();
     renderMyTickets();
     refreshSheetIfOpen();
+
+    // ── Game Over Overlay ──
+    const overlay = document.getElementById('gameOverOverlay');
+    if (!overlay) return;
+    if (gameStatus === 'ROUND ENDED' && winners.fullhouse) {
+        overlay.style.display = 'flex';
+        const w = winners.fullhouse;
+        const winnerEl = document.getElementById('gameOverWinner');
+        if (winnerEl) {
+            winnerEl.textContent = `🏆 TNO: ${w.tno} | সীট- ${w.seat}`;
+        }
+    } else {
+        overlay.style.display = 'none';
+    }
 }
 
 // ===== BUBBLE =====
@@ -1708,30 +1742,27 @@ function speak(num) {
 // একটি ticket grid HTML তৈরি করে
 function buildTicketHtml(tnoLabel, grid, calledSet) {
     let html = `<div style="margin-bottom:12px;">
-        <div style="background:#A22060;color:#fff;font-size:11px;font-weight:900;
-            padding:3px 10px;border-radius:4px 4px 0 0;display:inline-block;">
+        <div style="background:#A22060;color:#fff;font-size:13px;font-weight:900;
+            padding:4px 10px;border-radius:4px 4px 0 0;display:inline-block;">
             ${tnoLabel}
         </div>
         <div style="border:3px solid #A22060;border-radius:0 6px 6px 6px;
-            padding:4px;background:rgba(255,255,255,0.06);
+            padding:3px;background:#ffd700;
             display:grid;grid-template-columns:repeat(9,1fr);gap:3px;">`;
     grid.forEach(row => {
         const cells = row.length===9 ? row : [...row, ...Array(9-row.length).fill(null)];
         cells.forEach(num => {
             if (!num) {
-                html += `<div style="background:rgba(255,255,255,0.07);border-radius:4px;aspect-ratio:1;"></div>`;
+                html += `<div style="background:#f0f0f0;border-radius:3px;aspect-ratio:1;"></div>`;
             } else {
                 const hit = calledSet.has(Number(num));
                 html += `<div style="
-                    background:${hit?'#8B0000':'#fff'};
+                    background:${hit?'#A22060':'#fff'};
                     color:${hit?'#fff':'#111'};
-                    border:${hit?'2px solid #ffcc00':'1px solid #bbb'};
-                    border-radius:4px;aspect-ratio:1;
+                    border-radius:3px;aspect-ratio:1;
                     display:flex;align-items:center;justify-content:center;
-                    font-size:11px;font-weight:900;position:relative;">
+                    font-size:17px;font-weight:900;">
                     ${num}
-                    ${hit?`<div style="position:absolute;top:50%;left:0;right:0;height:2px;
-                        background:rgba(255,204,0,0.85);transform:translateY(-50%);"></div>`:''}
                 </div>`;
             }
         });
@@ -1842,11 +1873,11 @@ window.showModal = async function(key) {
 
         content.innerHTML = `
             <div style="text-align:center;padding:10px 0 4px;">
-                <div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:1px;">WON AT ${wonAt}</div>
-                <div style="margin:7px 0 10px;">
-                    <span style="background:#A22060;color:#fff;padding:4px 16px;border-radius:5px;font-size:13px;font-weight:900;">সীট- ${seatLabel}</span>
+                <div style="color:#fff;font-size:24px;font-weight:900;letter-spacing:1px;">WON AT ${wonAt}</div>
+                <div style="margin:8px 0 12px;">
+                    <span style="background:#A22060;color:#fff;padding:6px 20px;border-radius:6px;font-size:16px;font-weight:900;">সীট- ${seatLabel}</span>
                     &nbsp;
-                    <span style="background:#A22060;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:900;">WINNER</span>
+                    <span style="background:#A22060;color:#fff;padding:6px 14px;border-radius:6px;font-size:15px;font-weight:900;">WINNER</span>
                 </div>
             </div>
             <div style="max-height:62vh;overflow-y:auto;padding:0 2px;">
@@ -1900,10 +1931,15 @@ function tick() {
                 statusEl.textContent = 'ROUND ENDED';
                 bannerEl.classList.add('show');
                 bannerEl.textContent = `🏆 পরবর্তী রাউন্ড: ${pad(t.m)}:${pad(t.s)}`;
+                // Game Over overlay countdown আপডেট করো
+                const cdEl = document.getElementById('gameOverCountdown');
+                if (cdEl) cdEl.textContent = `${pad(t.h)}:${pad(t.m)}:${pad(t.s)}`;
             } else {
                 setBoxes(0, 0, 0);
                 statusEl.className   = 'over';
                 statusEl.textContent = 'GAME IS OVER';
+                const cdEl = document.getElementById('gameOverCountdown');
+                if (cdEl) cdEl.textContent = '00:00:00';
             }
         } else {
             setBoxes(0, 0, 0);
