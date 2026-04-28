@@ -408,51 +408,72 @@
 
 
 
-        /* ===== USER INFO BAR ===== */
-        .user-info-bar {
-            display: none;
+        /* ===== LIVE PAGE HEADER ===== */
+        .live-top-header {
+            position: sticky; top: 0; z-index: 500;
+            background: #12032a;
+            border-bottom: 1px solid rgba(162,32,96,0.4);
+            padding: 10px 14px;
+            display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(0,0,0,0.75);
-            border-bottom: 2px solid rgba(162,32,96,0.6);
-            padding: 8px 14px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-        .user-info-bar.show { display: flex; }
-        .user-name-tag {
-            display: flex; align-items: center; gap: 6px;
-            color: #ffd700;
-        }
-        .user-name-tag span { font-size: 12px; color: rgba(255,255,255,0.6); }
-        .user-balance-tag {
-            display: flex; align-items: center; gap: 6px;
-            color: #00ff88;
-            font-size: 14px;
-        }
-        .user-balance-tag span { font-size: 11px; color: rgba(255,255,255,0.5); }
-
-        /* ===== ONLINE COUNT ===== */
-        .online-count-bar {
-            display: none;
-            align-items: center;
-            justify-content: center;
             gap: 8px;
-            background: rgba(0,10,40,0.8);
-            border-bottom: 1px solid rgba(255,255,0,0.15);
-            padding: 6px 14px;
-            font-size: 12px; font-weight: 700;
         }
-        .online-count-bar.show { display: flex; }
-        .online-dot {
+        /* অনলাইন badge */
+        .live-online-badge {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(0,255,0,0.08);
+            border: 1px solid rgba(0,255,0,0.25);
+            border-radius: 20px;
+            padding: 5px 10px;
+            cursor: default;
+        }
+        .live-online-dot {
             width: 8px; height: 8px;
             background: #00ff00;
             border-radius: 50%;
             box-shadow: 0 0 6px #00ff00;
             animation: blink 1.2s infinite;
+            flex-shrink: 0;
         }
-        .online-count-txt { color: rgba(255,255,255,0.8); letter-spacing: 1px; }
-        .online-count-num { color: #00ff00; font-size: 14px; }
+        .live-online-num {
+            font-size: 13px; font-weight: 800; color: #00ff00;
+        }
+        .live-online-txt {
+            font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600;
+        }
+        /* ইউজার কার্ড */
+        .live-user-card {
+            display: none;
+            align-items: center; gap: 8px;
+        }
+        .live-user-card.show { display: flex; }
+        .live-user-info { text-align: right; min-width: 0; }
+        .live-user-name {
+            font-size: 13px; font-weight: 800; color: #fff;
+            max-width: 90px; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
+            line-height: 1.2;
+        }
+        .live-user-balance {
+            font-size: 12px; font-weight: 800; color: #A22060;
+            display: flex; align-items: center; justify-content: flex-end;
+            gap: 3px; margin-top: 2px; white-space: nowrap;
+        }
+        .live-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            border: 2px solid #A22060;
+            object-fit: cover; flex-shrink: 0;
+            background: #333;
+        }
+        .live-avatar-wrap { position: relative; flex-shrink: 0; }
+        .live-avatar-dot {
+            position: absolute; bottom: 1px; right: 1px;
+            width: 10px; height: 10px;
+            background: #22c55e; border-radius: 50%;
+            border: 2px solid #12032a;
+            box-shadow: 0 0 6px rgba(34,197,94,0.8);
+        }
 
         /* Stream quality indicator */
         .quality-dot {
@@ -485,24 +506,30 @@
         <div class="banner-text-overlay">H24ONLINE</div>
     </div>
 
-    <!-- USER INFO BAR -->
-    <div class="user-info-bar" id="userInfoBar">
-        <div class="user-name-tag">
-            👤 <div id="userDisplayName">—</div>
-            <span>নাম</span>
-        </div>
-        <div class="user-balance-tag">
-            ৳<div id="userDisplayBalance">0</div>
-            <span>ব্যালেন্স</span>
-        </div>
-    </div>
+    <!-- ===== LIVE PAGE TOP HEADER ===== -->
+    <div class="live-top-header" id="liveTopHeader">
 
-    <!-- ONLINE COUNT BAR -->
-    <div class="online-count-bar" id="onlineCountBar">
-        <div class="online-dot"></div>
-        <div class="online-count-txt">এখন অনলাইন:</div>
-        <div class="online-count-num" id="onlineCountNum">0</div>
-        <div class="online-count-txt">জন</div>
+        <!-- বাম: অনলাইন কাউন্ট -->
+        <div class="live-online-badge">
+            <div class="live-online-dot"></div>
+            <div class="live-online-num" id="onlineCountNum">0</div>
+            <div class="live-online-txt">অনলাইন</div>
+        </div>
+
+        <!-- ডান: ইউজার কার্ড -->
+        <div class="live-user-card" id="userInfoBar">
+            <div class="live-user-info">
+                <div class="live-user-name" id="userDisplayName">—</div>
+                <div class="live-user-balance">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                    ৳<span id="userDisplayBalance">0.00</span>
+                </div>
+            </div>
+            <div class="live-avatar-wrap">
+                <img class="live-avatar" id="userAvatar" src="https://i.pravatar.cc/150?img=12" alt="">
+                <span class="live-avatar-dot"></span>
+            </div>
+        </div>
     </div>
 
     <!-- ===== LIVE STREAM ===== -->
@@ -597,21 +624,48 @@
     <!-- GAME OVER OVERLAY -->
     <div id="gameOverOverlay" style="
         display:none; position:fixed; inset:0; z-index:9000;
-        background:rgba(0,0,0,0.88);
+        background:rgba(0,0,0,0.92);
         flex-direction:column; align-items:center; justify-content:center;
         text-align:center; padding:30px;">
+
+        <!-- Close button -->
+        <button onclick="const o=document.getElementById('gameOverOverlay');o.style.display='none';o.dataset.closed='1';"
+            style="position:absolute;top:16px;right:16px;
+                background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);
+                color:#fff;font-size:22px;width:42px;height:42px;border-radius:50%;
+                cursor:pointer;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
+
         <div style="font-size:64px;margin-bottom:10px;">🏆</div>
-        <div style="color:#ffd700;font-size:32px;font-weight:900;letter-spacing:2px;margin-bottom:6px;">
+        <div style="color:#ffd700;font-size:30px;font-weight:900;letter-spacing:2px;margin-bottom:6px;">
             GAME IS OVER
         </div>
-        <div style="color:#fff;font-size:16px;margin-bottom:20px;opacity:0.8;">
+        <div style="color:#fff;font-size:15px;margin-bottom:18px;opacity:0.8;">
             Full House সম্পন্ন হয়েছে!
         </div>
         <div id="gameOverWinner" style="background:#A22060;color:#fff;
             padding:10px 24px;border-radius:8px;font-size:15px;font-weight:900;
-            margin-bottom:24px;"></div>
-        <div style="color:#ccc;font-size:14px;margin-bottom:8px;">পরবর্তী রাউন্ড শুরু হবে</div>
-        <div id="gameOverCountdown" style="color:#ffd700;font-size:36px;font-weight:900;"></div>
+            margin-bottom:28px;"></div>
+
+        <div style="color:rgba(255,255,255,0.5);font-size:13px;letter-spacing:1px;margin-bottom:10px;">
+            পরবর্তী রাউন্ড শুরু হবে
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+            <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:10px 16px;text-align:center;min-width:64px;">
+                <div id="goHours" style="color:#ffd700;font-size:32px;font-weight:900;line-height:1;">00</div>
+                <div style="color:rgba(255,255,255,0.4);font-size:10px;margin-top:2px;">ঘন্টা</div>
+            </div>
+            <div style="color:#ffd700;font-size:28px;font-weight:900;">:</div>
+            <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:10px 16px;text-align:center;min-width:64px;">
+                <div id="goMins" style="color:#ffd700;font-size:32px;font-weight:900;line-height:1;">00</div>
+                <div style="color:rgba(255,255,255,0.4);font-size:10px;margin-top:2px;">মিনিট</div>
+            </div>
+            <div style="color:#ffd700;font-size:28px;font-weight:900;">:</div>
+            <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:10px 16px;text-align:center;min-width:64px;">
+                <div id="goSecs" style="color:#ffd700;font-size:32px;font-weight:900;line-height:1;">00</div>
+                <div style="color:rgba(255,255,255,0.4);font-size:10px;margin-top:2px;">সেকেন্ড</div>
+            </div>
+        </div>
+        <div id="gameOverCountdown" style="display:none;"></div>
     </div>
 
     <!-- FLOATING SHEET BUTTON -->
@@ -661,7 +715,7 @@ import { getDatabase, ref, onValue, set, get, update, child } from "https://www.
 import { initializeApp as initH24 }      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, collection, addDoc, serverTimestamp }
+import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, collection, addDoc, serverTimestamp, onSnapshot }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ── Game DB config ──
@@ -730,55 +784,48 @@ onAuthStateChanged(h24Auth, async (user) => {
         if (stored) paidPrizeKeys = new Set(JSON.parse(stored));
     } catch(e) {}
 
-    // Step 1: Auth থেকে সাথে সাথে দেখাও
+    // ── ইউজার UI elements ──
     const nameEl    = document.getElementById('userDisplayName');
     const balanceEl = document.getElementById('userDisplayBalance');
     const infoBar   = document.getElementById('userInfoBar');
-    if (nameEl)    nameEl.textContent    = user.displayName || user.email || (user.uid.slice(0,8) + '...');
+    const avatarEl  = document.getElementById('userAvatar');
+
+    // Step 1: Auth থেকে সাথে সাথে দেখাও
+    if (nameEl)    nameEl.textContent = user.displayName || user.email || '—';
     if (balanceEl) balanceEl.textContent = '...';
     if (infoBar)   infoBar.classList.add('show');
+    if (avatarEl && user.photoURL) avatarEl.src = user.photoURL;
 
-    // Step 2: Firestore থেকে বিস্তারিত নাও
-    try {
-        const uSnap = await getDoc(doc(h24db, 'users', user.uid));
-        if (uSnap.exists()) {
-            const ud = uSnap.data();
-            console.log('[H24] User doc fields:', Object.keys(ud));
-            const userName = ud.name || ud.displayName || ud.username || ud.fullName || ud.phone || user.displayName || user.email || '—';
-            if (nameEl) nameEl.textContent = userName;
-            const bal = ud.balance !== undefined ? ud.balance : (ud.wallet !== undefined ? ud.wallet : 0);
-            if (balanceEl) balanceEl.textContent = Number(bal).toFixed(2);
-            if (ud.seat) {
-                const m = String(ud.seat).match(/(\d+)/);
-                if (m) myViewSeat = parseInt(m[1], 10);
-            } else if (ud.seatNo) {
-                myViewSeat = parseInt(ud.seatNo, 10);
-            }
-        } else {
-            console.warn('[H24] Firestore user doc নেই uid:', user.uid);
-            if (balanceEl) balanceEl.textContent = '0.00';
+    // Step 2 + 3: Firestore onSnapshot — realtime
+    onSnapshot(doc(h24db, 'users', user.uid), (snap) => {
+        if (!snap.exists()) return;
+        const ud = snap.data();
+
+        // নাম
+        const nm = ud.name || ud.displayName || ud.username || ud.fullName
+                || user.displayName || user.email || '—';
+        const nEl = document.getElementById('userDisplayName');
+        if (nEl) nEl.textContent = nm;
+
+        // ব্যালেন্স
+        const bal = ud.balance !== undefined ? ud.balance
+                  : (ud.wallet !== undefined ? ud.wallet : 0);
+        const bEl = document.getElementById('userDisplayBalance');
+        if (bEl) bEl.textContent = Number(bal).toFixed(2);
+
+        // Avatar
+        const avEl = document.getElementById('userAvatar');
+        if (avEl && ud.photoURL)  avEl.src = ud.photoURL;
+        if (avEl && ud.avatar)    avEl.src = ud.avatar;
+
+        // Seat
+        if (ud.seat) {
+            const m = String(ud.seat).match(/(\d+)/);
+            if (m) myViewSeat = parseInt(m[1], 10);
+        } else if (ud.seatNo) {
+            myViewSeat = parseInt(ud.seatNo, 10);
         }
-    } catch(e) {
-        console.error('[H24] Firestore error:', e);
-        if (balanceEl) balanceEl.textContent = '0.00';
-    }
-
-    // Step 3: Balance realtime — onSnapshot
-    try {
-        const { onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        onSnapshot(doc(h24db, 'users', user.uid), (snap) => {
-            if (!snap.exists()) return;
-            const ud  = snap.data();
-            const bal = ud.balance !== undefined ? ud.balance : (ud.wallet !== undefined ? ud.wallet : 0);
-            const bEl = document.getElementById('userDisplayBalance');
-            if (bEl) bEl.textContent = Number(bal).toFixed(2);
-            const nm  = ud.name || ud.displayName || ud.username || user.displayName || user.email || '—';
-            const nEl = document.getElementById('userDisplayName');
-            if (nEl) nEl.textContent = nm;
-        });
-    } catch(e) {
-        console.error('[H24] onSnapshot error:', e);
-    }
+    });
 
     renderMyTickets();
     startWinnerListener();
@@ -918,6 +965,8 @@ let prevCalledNums  = [];
 let lastBall        = 0;
 let winners         = {};
 let roundStartTime  = 0;
+let roundEndTime    = 0; // ROUND ENDED হওয়ার সময়
+const NEXT_ROUND_DELAY = 10 * 60 * 1000; // 10 মিনিট পরে পরবর্তী রাউন্ড
 let currentRoundNum = 0;
 let gameStatus      = 'WAITING';
 let numberPool      = [];
@@ -975,9 +1024,8 @@ onValue(ref(database, 'webrtc/hostStatus'), snap => {
         document.getElementById('liveStreamBox').classList.remove('offline');
         document.getElementById('streamQuality').textContent = 'Live Available';
         document.getElementById('qualityDot').className = 'quality-dot ok';
-        // লাইভ চলার সময় টাইমার হাইড, অনলাইন কাউন্ট শো
+        // লাইভ চলার সময় টাইমার হাইড
         document.getElementById('timerSection').style.display = 'none';
-        document.getElementById('onlineCountBar').classList.add('show');
         const liveBox = document.getElementById('liveStreamBox');
         if (!autoModeOn) {
             liveBox.style.margin = '0 10px';
@@ -992,9 +1040,8 @@ onValue(ref(database, 'webrtc/hostStatus'), snap => {
         hostIsLive = false;
         cleanupPeer();
         setStreamOffline('LIVE STREAM অফলাইন');
-        // লাইভ বন্ধ হলে টাইমার ফিরিয়ে দাও, অনলাইন কাউন্ট হাইড
+        // লাইভ বন্ধ হলে টাইমার ফিরিয়ে দাও
         document.getElementById('timerSection').style.display = '';
-        document.getElementById('onlineCountBar').classList.remove('show');
     }
 });
 
@@ -1227,6 +1274,7 @@ onValue(ref(database, 'game'), snap => {
     winners            = d.winners        || {};
     gameStatus         = d.status         || 'WAITING';
     numberPool         = Array.isArray(d.numberPool) ? d.numberPool : [];
+    roundEndTime       = d.roundEndTime   || 0;
 
     if (newRoundNum !== currentRoundNum) {
         currentRoundNum = newRoundNum;
@@ -1287,7 +1335,10 @@ function updateUI() {
     const overlay = document.getElementById('gameOverOverlay');
     if (!overlay) return;
     if (gameStatus === 'ROUND ENDED' && winners.fullhouse) {
-        overlay.style.display = 'flex';
+        // ইউজার close করলে আবার দেখাবে না
+        if (!overlay.dataset.closed) {
+            overlay.style.display = 'flex';
+        }
         const w = winners.fullhouse;
         const winnerEl = document.getElementById('gameOverWinner');
         if (winnerEl) {
@@ -1295,6 +1346,7 @@ function updateUI() {
         }
     } else {
         overlay.style.display = 'none';
+        delete overlay.dataset.closed; // নতুন রাউন্ডে reset
     }
 }
 
@@ -2048,13 +2100,11 @@ function tick() {
     const statusEl = document.getElementById('gameStatusBar');
     const bannerEl = document.getElementById('winnerBanner');
     const timerEl  = document.getElementById('timerSection');
-    const onlineEl = document.getElementById('onlineCountBar');
     bannerEl.classList.remove('show');
 
-    // গেম LIVE হলে timer হাইড, online count শো
+    // গেম LIVE হলে timer হাইড
     const isLiveNow = gameStatus === 'GAME IS LIVE' || (calledNums.length > 0 && gameStatus !== 'ROUND ENDED');
     if (timerEl)  timerEl.style.display  = isLiveNow ? 'none' : '';
-    if (onlineEl) onlineEl.classList[isLiveNow ? 'add' : 'remove']('show');
 
     if (isLiveNow) {
         // গেম চলছে — timer 00:00 দেখাবে
@@ -2064,25 +2114,32 @@ function tick() {
 
     } else if (gameStatus === 'ROUND ENDED') {
         // গেম শেষ → countdown শুরু
-        if (roundStartTime > 0) {
-            const nextRoundAt = roundStartTime + CYCLE;
+        // roundEndTime থেকে NEXT_ROUND_DELAY পর্যন্ত countdown
+        const refTime = roundEndTime > 0 ? roundEndTime : (roundStartTime > 0 ? roundStartTime + (9 * 60 * 1000) : 0);
+        if (refTime > 0) {
+            const nextRoundAt = refTime + NEXT_ROUND_DELAY;
             const diff = nextRoundAt - now;
+            const ghEl = document.getElementById('goHours');
+            const gmEl = document.getElementById('goMins');
+            const gsEl = document.getElementById('goSecs');
             if (diff > 0) {
                 const t = msToHMS(diff);
                 setBoxes(t.h, t.m, t.s);
                 statusEl.className   = 'winner';
                 statusEl.textContent = 'ROUND ENDED';
                 bannerEl.classList.add('show');
-                bannerEl.textContent = `🏆 পরবর্তী রাউন্ড: ${pad(t.m)}:${pad(t.s)}`;
-                // Game Over overlay countdown আপডেট করো
-                const cdEl = document.getElementById('gameOverCountdown');
-                if (cdEl) cdEl.textContent = `${pad(t.h)}:${pad(t.m)}:${pad(t.s)}`;
+                const minLabel = t.h > 0 ? `${pad(t.h)}:${pad(t.m)}:${pad(t.s)}` : `${pad(t.m)}:${pad(t.s)}`;
+                bannerEl.textContent = `🏆 পরবর্তী রাউন্ড ${minLabel} পরে`;
+                if (ghEl) ghEl.textContent = pad(t.h);
+                if (gmEl) gmEl.textContent = pad(t.m);
+                if (gsEl) gsEl.textContent = pad(t.s);
             } else {
                 setBoxes(0, 0, 0);
                 statusEl.className   = 'over';
                 statusEl.textContent = 'GAME IS OVER';
-                const cdEl = document.getElementById('gameOverCountdown');
-                if (cdEl) cdEl.textContent = '00:00:00';
+                if (ghEl) ghEl.textContent = '00';
+                if (gmEl) gmEl.textContent = '00';
+                if (gsEl) gsEl.textContent = '00';
             }
         } else {
             setBoxes(0, 0, 0);
