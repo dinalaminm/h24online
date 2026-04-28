@@ -408,6 +408,52 @@
 
 
 
+        /* ===== USER INFO BAR ===== */
+        .user-info-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.75);
+            border-bottom: 2px solid rgba(162,32,96,0.6);
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .user-info-bar.show { display: flex; }
+        .user-name-tag {
+            display: flex; align-items: center; gap: 6px;
+            color: #ffd700;
+        }
+        .user-name-tag span { font-size: 12px; color: rgba(255,255,255,0.6); }
+        .user-balance-tag {
+            display: flex; align-items: center; gap: 6px;
+            color: #00ff88;
+            font-size: 14px;
+        }
+        .user-balance-tag span { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+        /* ===== ONLINE COUNT ===== */
+        .online-count-bar {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(0,10,40,0.8);
+            border-bottom: 1px solid rgba(255,255,0,0.15);
+            padding: 6px 14px;
+            font-size: 12px; font-weight: 700;
+        }
+        .online-count-bar.show { display: flex; }
+        .online-dot {
+            width: 8px; height: 8px;
+            background: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #00ff00;
+            animation: blink 1.2s infinite;
+        }
+        .online-count-txt { color: rgba(255,255,255,0.8); letter-spacing: 1px; }
+        .online-count-num { color: #00ff00; font-size: 14px; }
+
         /* Stream quality indicator */
         .quality-dot {
             display: inline-block; width: 8px; height: 8px;
@@ -437,6 +483,26 @@
     <div class="header-banner">
         <img src="http://starttambola.com/publish/themeStore/db/100008/img/banner_regular.png" class="banner-img" alt="">
         <div class="banner-text-overlay">H24ONLINE</div>
+    </div>
+
+    <!-- USER INFO BAR -->
+    <div class="user-info-bar" id="userInfoBar">
+        <div class="user-name-tag">
+            👤 <div id="userDisplayName">—</div>
+            <span>নাম</span>
+        </div>
+        <div class="user-balance-tag">
+            ৳<div id="userDisplayBalance">0</div>
+            <span>ব্যালেন্স</span>
+        </div>
+    </div>
+
+    <!-- ONLINE COUNT BAR -->
+    <div class="online-count-bar" id="onlineCountBar">
+        <div class="online-dot"></div>
+        <div class="online-count-txt">এখন অনলাইন:</div>
+        <div class="online-count-num" id="onlineCountNum">0</div>
+        <div class="online-count-txt">জন</div>
     </div>
 
     <!-- ===== LIVE STREAM ===== -->
@@ -493,7 +559,7 @@
 
     <!-- TIMER -->
     <div id="gameSection">
-    <div class="timer-section">
+    <div class="timer-section" id="timerSection">
         <div class="timer-labels">
             <span>Hours</span><span>Minutes</span><span>Seconds</span>
         </div>
@@ -626,6 +692,29 @@ const h24Auth  = getAuth(h24App);
 const h24db    = getFirestore(h24App);
 
 // ══════════════════════════════════════════════════════
+// ONLINE PRESENCE — Firebase Realtime DB দিয়ে online count
+// ══════════════════════════════════════════════════════
+import { getDatabase as getPresenceDB, ref as presRef, onDisconnect, set as presSet, onValue as presOnValue, serverTimestamp as rtServerTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// Presence: প্রতিটি viewer একটি unique node রেখে যাবে
+const presenceId = 'p_' + Math.random().toString(36).substr(2, 10) + '_' + Date.now().toString(36);
+const myPresRef  = presRef(database, `presence/${presenceId}`);
+
+// পেজ লোড হলেই presence সেট করো
+presSet(myPresRef, { online: true, ts: Date.now() });
+// পেজ বন্ধ হলে automatically remove
+onDisconnect(myPresRef).remove();
+
+// Online count listener
+presOnValue(presRef(database, 'presence'), snap => {
+    const data = snap.val();
+    const count = data ? Object.keys(data).length : 0;
+    const el = document.getElementById('onlineCountNum');
+    if (el) el.textContent = count;
+});
+
+// ══════════════════════════════════════════════════════
 // AUTH — শুধু prize credit এর জন্য, কোনো redirect নেই
 // ══════════════════════════════════════════════════════
 let currentUser   = null;
@@ -646,6 +735,13 @@ onAuthStateChanged(h24Auth, async (user) => {
         const uSnap = await getDoc(doc(h24db, 'users', user.uid));
         if (uSnap.exists()) {
             const ud = uSnap.data();
+            // User info bar আপডেট করো
+            const nameEl    = document.getElementById('userDisplayName');
+            const balanceEl = document.getElementById('userDisplayBalance');
+            const infoBar   = document.getElementById('userInfoBar');
+            if (nameEl)    nameEl.textContent    = ud.name || ud.displayName || user.email || '—';
+            if (balanceEl) balanceEl.textContent = ud.balance !== undefined ? Number(ud.balance).toFixed(2) : '0.00';
+            if (infoBar)   infoBar.classList.add('show');
             // seat: "N055" বা seatNo: 55
             if (ud.seat) {
                 const m = String(ud.seat).match(/(\d+)/);
@@ -748,6 +844,16 @@ async function creditPrize(prizeKey, type, amount, roundNum) {
         // 5️⃣ Win toast দেখাও
         showWinToast(PRIZE_LABELS[type] || type, amount);
 
+        // 6️⃣ UI তে balance আপডেট করো
+        try {
+            const uSnap2 = await getDoc(doc(h24db, 'users', currentUser.uid));
+            if (uSnap2.exists()) {
+                const newBal = uSnap2.data().balance;
+                const balEl = document.getElementById('userDisplayBalance');
+                if (balEl && newBal !== undefined) balEl.textContent = Number(newBal).toFixed(2);
+            }
+        } catch(e2) {}
+
     } catch(e) {
         console.error('Prize credit error:', e);
     }
@@ -840,6 +946,9 @@ onValue(ref(database, 'webrtc/hostStatus'), snap => {
         document.getElementById('liveStreamBox').classList.remove('offline');
         document.getElementById('streamQuality').textContent = 'Live Available';
         document.getElementById('qualityDot').className = 'quality-dot ok';
+        // লাইভ চলার সময় টাইমার হাইড, অনলাইন কাউন্ট শো
+        document.getElementById('timerSection').style.display = 'none';
+        document.getElementById('onlineCountBar').classList.add('show');
         const liveBox = document.getElementById('liveStreamBox');
         if (!autoModeOn) {
             liveBox.style.margin = '0 10px';
@@ -854,6 +963,9 @@ onValue(ref(database, 'webrtc/hostStatus'), snap => {
         hostIsLive = false;
         cleanupPeer();
         setStreamOffline('LIVE STREAM অফলাইন');
+        // লাইভ বন্ধ হলে টাইমার ফিরিয়ে দাও, অনলাইন কাউন্ট হাইড
+        document.getElementById('timerSection').style.display = '';
+        document.getElementById('onlineCountBar').classList.remove('show');
     }
 });
 
