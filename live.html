@@ -722,7 +722,7 @@ let paidPrizeKeys = new Set();
 
 // Background এ user detect করো — redirect নেই
 onAuthStateChanged(h24Auth, async (user) => {
-    if (!user) return; // login নেই — game দেখাবে, prize পাবে না
+    if (!user) return;
     currentUser = user;
     localStorage.setItem('userId', user.uid);
     try {
@@ -730,27 +730,56 @@ onAuthStateChanged(h24Auth, async (user) => {
         if (stored) paidPrizeKeys = new Set(JSON.parse(stored));
     } catch(e) {}
 
-    // Firestore থেকে user এর seat নাও
+    // Step 1: Auth থেকে সাথে সাথে দেখাও
+    const nameEl    = document.getElementById('userDisplayName');
+    const balanceEl = document.getElementById('userDisplayBalance');
+    const infoBar   = document.getElementById('userInfoBar');
+    if (nameEl)    nameEl.textContent    = user.displayName || user.email || (user.uid.slice(0,8) + '...');
+    if (balanceEl) balanceEl.textContent = '...';
+    if (infoBar)   infoBar.classList.add('show');
+
+    // Step 2: Firestore থেকে বিস্তারিত নাও
     try {
         const uSnap = await getDoc(doc(h24db, 'users', user.uid));
         if (uSnap.exists()) {
             const ud = uSnap.data();
-            // User info bar আপডেট করো
-            const nameEl    = document.getElementById('userDisplayName');
-            const balanceEl = document.getElementById('userDisplayBalance');
-            const infoBar   = document.getElementById('userInfoBar');
-            if (nameEl)    nameEl.textContent    = ud.name || ud.displayName || user.email || '—';
-            if (balanceEl) balanceEl.textContent = ud.balance !== undefined ? Number(ud.balance).toFixed(2) : '0.00';
-            if (infoBar)   infoBar.classList.add('show');
-            // seat: "N055" বা seatNo: 55
+            console.log('[H24] User doc fields:', Object.keys(ud));
+            const userName = ud.name || ud.displayName || ud.username || ud.fullName || ud.phone || user.displayName || user.email || '—';
+            if (nameEl) nameEl.textContent = userName;
+            const bal = ud.balance !== undefined ? ud.balance : (ud.wallet !== undefined ? ud.wallet : 0);
+            if (balanceEl) balanceEl.textContent = Number(bal).toFixed(2);
             if (ud.seat) {
                 const m = String(ud.seat).match(/(\d+)/);
                 if (m) myViewSeat = parseInt(m[1], 10);
             } else if (ud.seatNo) {
                 myViewSeat = parseInt(ud.seatNo, 10);
             }
+        } else {
+            console.warn('[H24] Firestore user doc নেই uid:', user.uid);
+            if (balanceEl) balanceEl.textContent = '0.00';
         }
-    } catch(e) {}
+    } catch(e) {
+        console.error('[H24] Firestore error:', e);
+        if (balanceEl) balanceEl.textContent = '0.00';
+    }
+
+    // Step 3: Balance realtime — onSnapshot
+    try {
+        const { onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        onSnapshot(doc(h24db, 'users', user.uid), (snap) => {
+            if (!snap.exists()) return;
+            const ud  = snap.data();
+            const bal = ud.balance !== undefined ? ud.balance : (ud.wallet !== undefined ? ud.wallet : 0);
+            const bEl = document.getElementById('userDisplayBalance');
+            if (bEl) bEl.textContent = Number(bal).toFixed(2);
+            const nm  = ud.name || ud.displayName || ud.username || user.displayName || user.email || '—';
+            const nEl = document.getElementById('userDisplayName');
+            if (nEl) nEl.textContent = nm;
+        });
+    } catch(e) {
+        console.error('[H24] onSnapshot error:', e);
+    }
+
     renderMyTickets();
     startWinnerListener();
 });
@@ -2018,14 +2047,16 @@ function tick() {
     const now      = Date.now();
     const statusEl = document.getElementById('gameStatusBar');
     const bannerEl = document.getElementById('winnerBanner');
+    const timerEl  = document.getElementById('timerSection');
+    const onlineEl = document.getElementById('onlineCountBar');
     bannerEl.classList.remove('show');
 
-    // ===== নতুন লজিক =====
-    // গেম LIVE → timer বন্ধ (00:00), status দেখাবে
-    // গেম ENDED → পরবর্তী রাউন্ড পর্যন্ত countdown
-    // WAITING → পরবর্তী রাউন্ড পর্যন্ত countdown
+    // গেম LIVE হলে timer হাইড, online count শো
+    const isLiveNow = gameStatus === 'GAME IS LIVE' || (calledNums.length > 0 && gameStatus !== 'ROUND ENDED');
+    if (timerEl)  timerEl.style.display  = isLiveNow ? 'none' : '';
+    if (onlineEl) onlineEl.classList[isLiveNow ? 'add' : 'remove']('show');
 
-    if (gameStatus === 'GAME IS LIVE' || (calledNums.length > 0 && gameStatus !== 'ROUND ENDED')) {
+    if (isLiveNow) {
         // গেম চলছে — timer 00:00 দেখাবে
         setBoxes(0, 0, 0);
         statusEl.className   = 'live';
